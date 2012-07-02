@@ -3,17 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jcoderz.mb</groupId>
     <artifactId>mb-ngs-java</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <repositories>
-        <repository>
-            <id>jcoderz.org</id>
-            <url>http://www.jcoderz.org/repos/maven2</url>
-        </repository>
-        <repository>
-            <id>JBoss</id>
-            <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-        </repository>
-    </repositories>
+    <name>mb-ngs-java</name>
+    <parent>
+        <groupId>org.jcoderz.m3dditiez</groupId>
+        <artifactId>mp3</artifactId>
+        <version>1.0.0.SNAPSHOT</version>
+    </parent>
     <properties>
         <FAWKEZ_VERSION>2.0.0-SNAPSHOT</FAWKEZ_VERSION>
     </properties>
@@ -155,15 +150,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <inherited>true</inherited>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>

@@ -3,23 +3,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.jcoderz.m3dditiez</groupId>
     <artifactId>mp3-ng</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <repositories>
-        <repository>
-            <id>jcoderz.org</id>
-            <url>http://www.jcoderz.org/repos/maven2</url>
-        </repository>
-        <repository>
-            <id>JBoss</id>
-            <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-        </repository>
-        <repository>
-            <id>maven2-repository.java.net</id>
-            <name>Java.net Repository for Maven</name>
-            <url>http://download.java.net/maven/2/</url>
-            <layout>default</layout>
-        </repository>
-    </repositories>
+    <name>mp3-ng</name>
+    <parent>
+        <groupId>org.jcoderz.m3dditiez</groupId>
+        <artifactId>mp3</artifactId>
+        <version>1.0.0.SNAPSHOT</version>
+    </parent>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -35,7 +24,7 @@
         <dependency>
             <groupId>org.jcoderz.mb</groupId>
             <artifactId>mb-ngs-java</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -78,15 +67,6 @@
     </dependencies>
     <build>
         <plugins>
-            <plugin>
-                <inherited>true</inherited>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
-                </configuration>
-            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
