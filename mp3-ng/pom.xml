@@ -19,7 +19,7 @@
         <dependency>
             <groupId>org.jcoderz.fawkez</groupId>
             <artifactId>fawkez-commons</artifactId>
-            <version>2.0.0-SNAPSHOT</version>
+            <version>2.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.jcoderz.mb</groupId>

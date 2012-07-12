@@ -4,7 +4,7 @@
     <groupId>org.jcoderz.m3dditiez</groupId>
     <artifactId>mp3</artifactId>
     <name>mp3</name>
-    <version>1.0.0.SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>This is the Maven base project for the mp3 modules.</description>
     <url>http://www.jcoderz.org/m3dditiez/</url>
@@ -13,7 +13,7 @@
         <url>http://www.jcoderz.org/</url>
     </organization>
     <modules>
-      <module>mb-ngs-java</module>
+      <module>mp3-mb-ngs-java</module>
       <module>mp3-ng</module>
     </modules>
    <repositories>
