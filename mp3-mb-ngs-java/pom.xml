@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.jcoderz.m3dditiez</groupId>
         <artifactId>mp3</artifactId>
-        <version>1.0.0.SNAPSHOT</version>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <properties>
         <FAWKEZ_VERSION>2.0.0</FAWKEZ_VERSION>
