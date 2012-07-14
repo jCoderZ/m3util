@@ -1,7 +1,5 @@
 package org.jcoderz.mp3.intern.util;
 
-import java.util.logging.Logger;
-
 import org.jaudiotagger.tag.FieldDataInvalidException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
@@ -20,7 +18,6 @@ import org.jcoderz.commons.util.StringUtil;
  */
 public final class Id3Util
 {
-    private static final Logger LOGGER = Logger.getLogger(Id3Util.class.getName());
     
     /** No instances. */
     private Id3Util()

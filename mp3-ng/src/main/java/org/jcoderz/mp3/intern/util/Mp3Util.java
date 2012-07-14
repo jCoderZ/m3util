@@ -12,14 +12,12 @@ import java.security.NoSuchAlgorithmException;
 
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.mp3.MPEGFrameHeader;
-import org.jaudiotagger.tag.id3.AbstractID3v1Tag;
 import org.jcoderz.commons.util.HexUtil;
 import org.jcoderz.commons.util.IoUtil;
 
 
 public class Mp3Util
 {
-    private static final int ID_3V1_TAG_LENGTH = 128;
     private static final int BUFFER_SIZE = 10 * 1024 * 1024;
     private static final int CRC_SIZE_IN_BYTES = 2; // 16bit checksum
 
@@ -33,7 +31,6 @@ public class Mp3Util
         boolean done = false;
         MessageDigest md = null;
         FileInputStream fis = null;
-        boolean hadSync = false;
         final ByteBuffer bb = ByteBuffer.allocateDirect(BUFFER_SIZE);
         
         try
