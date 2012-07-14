@@ -21,8 +21,8 @@
             <version>2.0.0</version>
         </dependency>
         <dependency>
-            <groupId>org.jcoderz.mb</groupId>
-            <artifactId>mb-ngs-java</artifactId>
+            <groupId>org.jcoderz.m3dditiez</groupId>
+            <artifactId>mp3-mb-ngs-java</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
