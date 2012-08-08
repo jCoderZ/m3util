@@ -8,70 +8,105 @@ import org.jcoderz.commons.util.DirTreeWalker;
 import org.jcoderz.mp3.intern.MusicBrainzMetadata;
 import org.jcoderz.mp3.intern.TagQuality;
 
-public class DatabaseUpdater
-    implements DirTreeListener
-{
-    private static final String CLASSNAME = DatabaseUpdater.class.getName();
-    private static final Logger LOGGER = Logger.getLogger(CLASSNAME);
+/**
+ * The class DatabaseUpdater iterates through all folders of different quality levels and
+ * updates or creates the Lucene index.
+ * 
+ * @author amandel
+ * @author mrumpf
+ */
+public class DatabaseUpdater implements DirTreeListener {
+	private static final String CLASSNAME = DatabaseUpdater.class.getName();
+	private static final Logger LOGGER = Logger.getLogger(CLASSNAME);
 
-    final File mRepositoryBase;
-    final File mLuceneBase;
-    final LuceneIndex mLucene;
+	final File mRepositoryBase;
+	final File mLuceneBase;
+	final LuceneIndex mLucene;
 
-    public static void main (String[] args)
-    {
-        DatabaseUpdater du = new DatabaseUpdater(new File(args[0]));
-        du.refresh(TagQuality.GOLD);
-    }
-    
-    public DatabaseUpdater(File base)
-    {
-        mRepositoryBase = base;
-        mLuceneBase = new File(base, "tools/var/db/lucene"); // FIXME DIRECTORY
-        mLuceneBase.mkdirs();
-        mLucene = new LuceneIndex();
-    }
-    
-    public void refresh(TagQuality qual)
-    {
-        final DirTreeWalker walker 
-            = new DirTreeWalker(
-                new File(mRepositoryBase, qual.getSubdir() + "/"), this); // FIXME DIRECTORY
-        mLucene.open(mLuceneBase);
-        try
-        {
-            walker.start();
-        }
-        finally
-        {
-            mLucene.close();
-        }
-    }
-    
-    public void enteringDir (File dir)
-    {
-        LOGGER.info("ENTERING: " + dir);
-        
-    }
+	/**
+	 * This command line entry point can be called with either one or more than
+	 * one parameters. The first parameter must be the root of the media
+	 * library. The following parameters are TagQuality identifiers which
+	 * determine the sub-folder to index.
+	 * 
+	 * <p>
+	 * The following command will update all audio folders: DatabaseUpdater
+	 * /media/usb
+	 * </p>
+	 * 
+	 * <p>
+	 * Indexing only the gold folder can be done like this: DatabaseUpdater
+	 * /media/usb GOLD
+	 * </p>
+	 * 
+	 * @param args
+	 *            the command line arguments
+	 */
+	public static void main(String[] args) {
+		DatabaseUpdater du = new DatabaseUpdater(new File(args[0]));
+		if (args.length > 1) {
+			for (int i = 1; i < args.length; i++) {
+				du.refresh(TagQuality.valueOf(args[1]));
+			}
+		} else {
+			du.refresh(TagQuality.GOLD);
+			du.refresh(TagQuality.SILVER);
+			du.refresh(TagQuality.BRONZE);
+		}
+	}
 
-    public void exitingDir (File dir)
-    {
-        // TODO Auto-generated method stub
-        
-    }
+	/**
+	 * Creates a database updater instance which updates the lucene index or
+	 * creates a new one.
+	 * 
+	 * @param base
+	 *            the base directory. The lucene index is located under
+	 *            $base/tools/var/db/licene.
+	 */
+	public DatabaseUpdater(File base) {
+		mRepositoryBase = base;
+		mLuceneBase = new File(base, "tools/var/lib/lucene"); // FIXME DIRECTORY
+		mLuceneBase.mkdirs();
+		mLucene = new LuceneIndex();
+	}
 
-    public void file (File file)
-    {
-        if (file.getName().endsWith(".mp3"))
-        {
-            final MusicBrainzMetadata mb 
-                = new MusicBrainzMetadata(file);
-            if (mb.getUuid() != null)
-            {
-                mLucene.updateDocument(DocumentUtil.create(mb));
-            }
-        }
-    }
+	/**
+	 * Refreshes the Lucene index.
+	 * 
+	 * @param quality
+	 *            the quality tag which determines the sub-folder
+	 */
+	public void refresh(TagQuality quality) {
+		final DirTreeWalker walker = new DirTreeWalker(new File(
+				mRepositoryBase, "audio/" + quality.getSubdir() + "/"), this);
+		mLucene.open(mLuceneBase);
+		try {
+			walker.start();
+		} finally {
+			mLucene.close();
+		}
+	}
 
-    
+	@Override
+	public void enteringDir(File dir) {
+		LOGGER.info("ENTERING: " + dir);
+	}
+
+	@Override
+	public void exitingDir(File dir) {
+		LOGGER.info("EXITING: " + dir);
+	}
+
+	@Override
+	public void file(File file) {
+		if (file.getName().endsWith(".mp3")) {
+			final MusicBrainzMetadata mb = new MusicBrainzMetadata(file);
+			if (mb.getUuid() != null) {
+				mLucene.updateDocument(DocumentUtil.create(mb));
+			} else {
+				LOGGER.warning("File has no uuid and thus will not be added to the index: "
+						+ mb);
+			}
+		}
+	}
 }
