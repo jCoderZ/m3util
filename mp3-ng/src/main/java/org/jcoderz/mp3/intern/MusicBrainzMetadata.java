@@ -53,6 +53,8 @@ import org.jcoderz.mp3.intern.util.Mp3Util;
 public class MusicBrainzMetadata
 {
 
+   private static final String NO_ALBUM_TRACK_ALBUM_TYPE = "none";
+   
    private static final String CLASSNAME
          = MusicBrainzMetadata.class.getName();
    private static final Logger LOGGER
@@ -844,9 +846,9 @@ public class MusicBrainzMetadata
             {
                 if (!UNKOWN_FRAMES.contains(desc))
                 {
+                    UNKOWN_FRAMES.add(desc);
                     LOGGER.info("Unknown TXXX text frame type '" + desc
                         + "' text: '" + fb.getText() + "'.");
-                    UNKOWN_FRAMES.add(desc);
                 }
             }
         }
@@ -1042,16 +1044,44 @@ public class MusicBrainzMetadata
         final Track track = data.getTrack();
         final Medium medium = data.getMedium();
         final org.jcoderz.mb.type.Release release = data.getRelease();
-        Assert.notNull(medium, "TrackData.getMedium()");
-        Assert.notNull(release, "TrackData.getRelease()");
         Assert.notNull(track, "TrackData.getTrack()");
+        
+        
+        boolean noAlbumTrack 
+            = medium == null || 
+                NO_ALBUM_TRACK_ALBUM_TYPE.equalsIgnoreCase(
+                    release.getReleaseGroup().getType());
+        
+        if (!noAlbumTrack)
+        {
+            Assert.notNull(medium, "TrackData.getMedium()");
+            Assert.notNull(release, "TrackData.getRelease()");
+        }
         
         final ArtistCredit artistCredit 
             = track.getRecording().getArtistCredit();
-        final ArtistCredit albumArtistCredit 
-            = release.getArtistCredit();
-        final org.jcoderz.mb.type.Artist albumArtist 
-            = albumArtistCredit.getNameCredit().get(0).getArtist();
+
+        final org.jcoderz.mb.type.Artist albumArtist;
+        // TODO: There might be multiple Ids....
+        if (noAlbumTrack)
+        {
+            changed = setAlbumArtistId(null) || changed;
+            changed = setAlbumArtist(null) || changed;
+            changed = setAlbumArtistSortname(null) || changed;
+            albumArtist = null;
+        }
+        else
+        {
+            final ArtistCredit albumArtistCredit 
+                = release.getArtistCredit();
+            albumArtist 
+                = albumArtistCredit.getNameCredit().get(0).getArtist();
+            changed = setAlbumArtistId(albumArtist.getId()) || changed;
+            changed = setAlbumArtist(MbClient.getArtist(albumArtistCredit)) || changed;
+            changed 
+                = setAlbumArtistSortname(MbClient.getArtistSortName(albumArtistCredit)) || changed; // BBBBBB
+        }
+
         final org.jcoderz.mb.type.Artist trackArtist = 
             artistCredit == null ? albumArtist
                 : artistCredit.getNameCredit().get(0).getArtist();
@@ -1060,12 +1090,6 @@ public class MusicBrainzMetadata
         changed = setArtistId(trackArtist.getId()) || changed;
         changed = setArtist(MbClient.getArtist(artistCredit)) || changed;
         changed = setArtistSortname(MbClient.getArtistSortName(artistCredit)) || changed;
-
-        // TODO: There might be multiple Ids....
-        changed = setAlbumArtistId(albumArtist.getId()) || changed;
-        changed = setAlbumArtist(MbClient.getArtist(albumArtistCredit)) || changed;
-        changed 
-            = setAlbumArtistSortname(MbClient.getArtistSortName(albumArtistCredit)) || changed; // BBBBBB
         
         final String title;
         if (StringUtil.isNullOrBlank(track.getTitle()))
@@ -1079,37 +1103,55 @@ public class MusicBrainzMetadata
         
         changed = setTitle(title) || changed;
         changed = setFileId(track.getRecording().getId()) || changed;
-        changed 
-            = setTrackNumber(
-                track.getPosition().intValue(), 
-                medium.getTrackList().getCount().intValue())
-            || changed;
-        changed = setAlbum(buildAlbumTitle(data)) || changed;
-        changed = setAlbumId(release.getId()) || changed;
- 
-        final int mediumCount = release.getMediumList().getCount().intValue();
-        if (mediumCount > 1)
+        
+        if (noAlbumTrack)
         {
-            final int mediumPos = medium.getPosition().intValue();
-            changed = setField(FieldKey.DISC_NO, Integer.toString(mediumPos)) || changed;
-            changed = setField(FieldKey.DISC_TOTAL, Integer.toString(mediumCount)) || changed;
+            changed = setTrackNumber(-1, -1) || changed;
+            changed = setAlbum(null) || changed;
+            changed = setAlbumId(null) || changed; 
+            changed = setField(FieldKey.DISC_NO, null) || changed;
+            changed = setField(FieldKey.DISC_TOTAL, null) || changed;
+            changed = setAlbumStatus(null) || changed;
+            changed = setAsin(null) || changed;
+        }
+        else
+        {
+            changed 
+                = setTrackNumber(
+                    track.getPosition().intValue(), 
+                    medium.getTrackList().getCount().intValue())
+                || changed;
+            changed = setAlbum(buildAlbumTitle(data)) || changed;
+            changed = setAlbumId(release.getId()) || changed;
+            changed 
+                = setAlbumStatus(
+                    release.getStatus() == null ? null : release.getStatus().getValue()) || changed;
+            changed = setAsin(getAsin(data)) || changed;
+     
+            final int mediumCount = release.getMediumList().getCount().intValue();
+            if (mediumCount > 1)
+            {
+                final int mediumPos = medium.getPosition().intValue();
+                changed = setField(FieldKey.DISC_NO, Integer.toString(mediumPos)) || changed;
+                changed = setField(FieldKey.DISC_TOTAL, Integer.toString(mediumCount)) || changed;
+            }
         }
         
-        String type = release.getReleaseGroup().getType();
-        if (type == null)
+        final String type; 
+        if (release == null || release.getReleaseGroup() == null)
+        {
+            type = NO_ALBUM_TRACK_ALBUM_TYPE;
+        }
+        else if (release.getReleaseGroup().getType() == null)
         {
             type = "";
         }
         else
         {
-            type = type.toLowerCase();
+            type = release.getReleaseGroup().getType().toLowerCase();
         }
         changed = setAlbumType(type) || changed;
-        changed = setAsin(getAsin(data)) || changed;
         
-         changed 
-             = setAlbumStatus(
-                 release.getStatus() == null ? null : release.getStatus().getValue()) || changed;
          
         if (type.contains("soundtrack"))
         {
@@ -1130,7 +1172,7 @@ public class MusicBrainzMetadata
         }
 
         // search for early release... 
-        if (release.getDate() != null 
+        if (release != null && release.getDate() != null 
             && !StringUtil.isEmptyOrNull(release.getDate().getValue()))
         {
             final int year 
@@ -1148,7 +1190,7 @@ public class MusicBrainzMetadata
             changed = setUuid(UUID.randomUUID().toString()) || changed;
         }
 
-        if (release.getTextRepresentation() != null)
+        if (release != null && release.getTextRepresentation() != null)
         {
             if (release.getTextRepresentation().getLanguage() != null)
             {
