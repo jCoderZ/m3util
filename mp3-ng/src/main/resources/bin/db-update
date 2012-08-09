@@ -37,5 +37,5 @@ fi
 
 export CLASSPATH=$M3_LIBRARY_HOME/tools/lib/m3util/mp3-ng-1.0.0-SNAPSHOT.jar:$M3_LIBRARY_HOME/tools/lib/m3util/fawkez-commons-2.0.0.jar:$M3_LIBRARY_HOME/tools/lib/m3util/lucene-core-3.6.0.jar:$M3_LIBRARY_HOME/tools/lib/m3util/jaudiotagger-2.0.3.jar
 
-java -DM3_LIBRARY_HOME=$M3_LIBRARY_HOME org.jcoderz.mp3.intern.lucene.DatabaseUpdater $M3_LIBRARY_HOME $*
+java -DM3_LIBRARY_HOME=$M3_LIBRARY_HOME org.jcoderz.mp3.intern.lucene.DatabaseUpdater $*
 
