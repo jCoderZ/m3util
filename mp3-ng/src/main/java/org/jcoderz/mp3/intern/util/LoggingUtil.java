@@ -11,24 +11,69 @@ import java.util.logging.SimpleFormatter;
 import java.util.logging.StreamHandler;
 
 /**
- * 
- * @author amandel
+ * This utility class provides helper methods for dealing with
+ * the logging subsystem.
  *
+ * @author amandel
+ * @author mrumpf
+ * 
  */
 public class LoggingUtil {
 
-	public static void initLogging(Logger logger) throws FileNotFoundException {
-		initLogging(logger, org.jcoderz.commons.types.Date.now().toString().replace(':', '.'));
+	private LoggingUtil() {
+		// do not instantiate
 	}
-	public static void initLogging(Logger logger,
-			final String timestamp) throws FileNotFoundException {
-		final File logFile = new File(Environment.getLogFolder(), "DRY_CLEANUP-"
-					+ timestamp + ".log");
+	
+	/**
+	 * Initializes the logging subsystem by adding two file handlers to the root
+	 * logger. One handler creates a log-file with name "LOGGER_NAME-TIMESTAMP.all.log
+	 * which collects ALL log statements. The other one with filename
+	 * "LOGGER_NAME-TIMESTAMP.info.log" which collects only INFO level statements. 
+	 * 
+	 * @param logger the logger to initialize
+	 * @throws FileNotFoundException when the log file could not be opened
+	 */
+	public static void initLogging(Logger logger) throws FileNotFoundException {
+		initLogging(logger, logger.getName(), org.jcoderz.commons.types.Date.now().toString()
+				.replace(':', '.'));
+	}
+
+	/**
+	 * Initializes the logging subsystem by adding two file handlers to the root
+	 * logger. One handler creates a log-file with name "PREFIX-TIMESTAMP.all.log
+	 * which collects ALL log statements. The other one with filename
+	 * "PREFIX-TIMESTAMP.info.log" which collects only INFO level statements. 
+	 * 
+	 * @param logger the logger to initialize
+	 * @param prefix the log file prefix
+	 * @throws FileNotFoundException when the log file could not be opened
+	 */
+	public static void initLogging(Logger logger, String prefix) throws FileNotFoundException {
+		initLogging(logger, prefix, org.jcoderz.commons.types.Date.now().toString()
+				.replace(':', '.'));
+	}
+
+	/**
+	 * Initializes the logging subsystem by adding two file handlers to the root
+	 * logger. One handler creates a log-file with name "PREFIX-SUFFIX.all.log
+	 * which collects ALL log statements. The other one with filename
+	 * "PREFIX-SUFFIX.info.log" which collects only INFO level statements. 
+	 * 
+	 * @param logger the logger to initialize (level set to ALL)
+	 * @param prefix the log file prefix
+	 * @param suffix the log file suffix
+	 * @throws FileNotFoundException when the log file could not be opened
+	 */
+	public static void initLogging(Logger logger, final String prefix, final String suffix)
+			throws FileNotFoundException {
+		final File logFile = new File(Environment.getLogFolder(),
+				logger.getName() + "-" + suffix + ".all.log");
 		final StreamHandler handler = new StreamHandler(new FileOutputStream(
 				logFile, true), new SimpleFormatter());
 		handler.setLevel(Level.ALL);
 		Logger.getLogger("").addHandler(handler);
-		final File 	logFileInfo = new File(Environment.getLogFolder(), "DRY_CLEANUP-INFO-" + timestamp);
+		final File logFileInfo = new File(Environment.getLogFolder(),
+				logger.getName() + "-" + suffix + ".info.log");
 		final StreamHandler handlerInfo = new StreamHandler(
 				new FileOutputStream(logFileInfo, true), new SimpleFormatter());
 		handlerInfo.setLevel(Level.INFO);

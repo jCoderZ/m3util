@@ -83,7 +83,7 @@ public final class RefreshRepository
       final String mbServerHostname = "http://mb-box:5000";
       // final String mbServerHostname = "file:///c:/tmp/mb/";
       
-      LoggingUtil.initLogging(logger);
+      LoggingUtil.initLogging(logger, "DRY-CLEANUP");
       logger.info("---- !START! ----");
       logger.info("----  RefreshRepository '" + args[0] + "'");
 
