@@ -7,6 +7,7 @@ import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 import org.jaudiotagger.tag.id3.ID3Tags;
 import org.jaudiotagger.tag.id3.ID3v11Tag;
+import org.jaudiotagger.tag.id3.ID3v23Tag;
 import org.jaudiotagger.tag.reference.GenreTypes;
 import org.jcoderz.commons.util.StringUtil;
 
@@ -91,6 +92,12 @@ public final class Id3Util
         {
             // set no genre 
         }
+    }
+    
+    
+    public void checkTag (ID3v23Tag tag)
+    {
+        tag.removeUnsupportedFrames();
     }
 
     private static void copyTag (
