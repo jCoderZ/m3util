@@ -66,6 +66,24 @@
     </dependencies>
     <build>
         <plugins>
+			<plugin>
+				<groupId>org.jcoderz.fawkez</groupId>
+				<artifactId>fawkez-codegen</artifactId>
+				<version>2.0.0</version>
+				<executions>
+					<execution>
+						<id>codegen-main</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>simpletypes</goal>
+						</goals>
+						<configuration>
+							<sourceDirectory>src/main/fawkez</sourceDirectory>
+							<destinationDirectory>${project.build.directory}/generated-fawkez-main</destinationDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
