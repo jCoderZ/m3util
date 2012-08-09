@@ -63,9 +63,36 @@
             <artifactId>lucene-core</artifactId>
             <version>3.6.0</version>
         </dependency>
-    </dependencies>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>3.6.8.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.2.6</version>
+        </dependency>    </dependencies>
     <build>
         <plugins>
+			<plugin>
+				<groupId>org.jcoderz.fawkez</groupId>
+				<artifactId>fawkez-codegen</artifactId>
+				<version>2.0.0</version>
+				<executions>
+					<execution>
+						<id>codegen-main</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>simpletypes</goal>
+						</goals>
+						<configuration>
+							<sourceDirectory>src/main/fawkez</sourceDirectory>
+							<destinationDirectory>${project.build.directory}/generated-fawkez-main</destinationDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>

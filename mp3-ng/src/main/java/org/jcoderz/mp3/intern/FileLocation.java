@@ -350,9 +350,7 @@ out:
             throw new RuntimeException("Unexpected code reached.");
         }
         sb.append('/');
-        if (isSingle() || StringUtil.isBlankOrNull(mAlbum)) // use Id if
-                                                           // album is
-                                                           // ''?
+        if (isSingle() || StringUtil.isBlankOrNull(mAlbum)) 
         {
             sb.append('/');
             sb.append("[Singles]");

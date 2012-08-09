@@ -2,8 +2,6 @@ package org.jcoderz.mp3.intern;
 
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,8 +12,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-import java.util.logging.StreamHandler;
 import java.util.regex.Pattern;
 
 import org.jcoderz.commons.util.ArraysUtil;
@@ -83,9 +79,9 @@ public final class RefreshRepository
    public static void main (String[] args)
          throws IOException
    {
-      final String mbServerHostname = "http://192.168.56.101:3000";
+      //final String mbServerHostname = "http://192.168.56.101:3000";
+      final String mbServerHostname = "http://mb-box:5000";
       // final String mbServerHostname = "file:///c:/tmp/mb/";
-      
       
       LoggingUtil.initLogging(logger);
       logger.info("---- !START! ----");
@@ -95,8 +91,8 @@ public final class RefreshRepository
             = new RefreshRepository(
                 false /*dryRun*/,
 //                new File(args[0]), 
-               new File(args[0] + "/mp3"), 
-//               new File(args[0] + "/upload/cleaned"), 
+//               new File(args[0] + "/mp3"), 
+               new File(args[0] + "/upload/cleaned"), 
                new File(args[0]), 
                mbServerHostname);
 
@@ -290,12 +286,14 @@ public final class RefreshRepository
         {
             // load the album....
             final String currentAlbum = songs.get(0).getAlbumId();
-            final Release release = mMusicBrainz.getRelease(currentAlbum);
+            final Release release 
+                = StringUtil.isEmptyOrNull(currentAlbum) ? null : mMusicBrainz.getRelease(currentAlbum);
             final TrackData track 
                 = MbUtil.getTrackDataWithIdUpdate(mMusicBrainz, songs.get(0), release);
 
-            final int fullTrackCount = track.getMedium().getTrackList().getCount().intValue();
-            final boolean complete = songs.size() == fullTrackCount;
+            final int fullTrackCount 
+                = track.getMedium() == null ? 0 : track.getMedium().getTrackList().getCount().intValue();
+            final boolean complete = songs.size() >= fullTrackCount;
             final boolean single = songs.size() * 2 < fullTrackCount;
             for (MusicBrainzMetadata song : songs)
             {
@@ -590,6 +588,7 @@ public final class RefreshRepository
                     }
                     else if (!FileUtil.moveDir(dir, newDir))
                     {
+                        // TODO: Retry -1- if dupe!?
                         throw new Exception(
                             "Failed to move directory '" + dir
                             + "' -> '" + newDir + "'.");

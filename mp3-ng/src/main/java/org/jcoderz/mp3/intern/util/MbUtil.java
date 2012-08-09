@@ -70,7 +70,7 @@ public final class MbUtil
             
             track = mbClient.getTrackData(album, recording.getId());
         }
-        if (track.getMedium() == null)
+        if (track.getMedium() == null && album != null)
         {
             Assert.fail("Cold not find track " + trackId + " in Release " + album.getId());
         }
@@ -103,5 +103,6 @@ public final class MbUtil
        final Collator collator = Collator.getInstance(new Locale("en", "US"));
        collator.setStrength(Collator.PRIMARY);
        return collator.compare(a, b) == 0;
-    }    
+    }
+
 }
