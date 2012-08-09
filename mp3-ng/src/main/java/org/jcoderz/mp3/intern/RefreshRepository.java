@@ -29,6 +29,7 @@ import org.jcoderz.mb.type.Recording;
 import org.jcoderz.mb.type.Release;
 import org.jcoderz.mb.type.TrackData;
 import org.jcoderz.mp3.intern.util.FileUtil;
+import org.jcoderz.mp3.intern.util.LoggingUtil;
 import org.jcoderz.mp3.intern.util.MbUtil;
 
 // Handle the situation that a incoming album will be moved to Singles!
@@ -82,20 +83,17 @@ public final class RefreshRepository
    public static void main (String[] args)
          throws IOException
    {
-      final boolean dryRun = false;
       final String mbServerHostname = "http://192.168.56.101:3000";
       // final String mbServerHostname = "file:///c:/tmp/mb/";
       
       
-      initLogging(
-          args, dryRun, 
-          org.jcoderz.commons.types.Date.now().toString().replace(':', '.'));
+      LoggingUtil.initLogging(logger);
       logger.info("---- !START! ----");
       logger.info("----  RefreshRepository '" + args[0] + "'");
 
       final RefreshRepository checker 
             = new RefreshRepository(
-                dryRun,
+                false /*dryRun*/,
 //                new File(args[0]), 
                new File(args[0] + "/mp3"), 
 //               new File(args[0] + "/upload/cleaned"), 
@@ -119,61 +117,6 @@ public final class RefreshRepository
           logger.info("---- END ----");
       }
    }
-
-   // -> Looging util, could be used globally in Mp3Util????
-    private static void initLogging (String[] args, boolean dryRun, final String timestamp)
-        throws FileNotFoundException
-    {
-        final File logFile;
-        if (dryRun)
-        {
-            logFile = new File(new File(args[0]), "/tools/var/log/DRY_CLEANUP-"
-                + timestamp + ".log");
-        }
-        else
-        {
-            logFile = new File(new File(args[0] + "/upload/"), "CLEANUP-"
-                + timestamp + ".log");
-        }
-        final StreamHandler handler = new StreamHandler(new FileOutputStream(
-            logFile, true), new SimpleFormatter());
-        handler.setLevel(Level.ALL);
-        Logger.getLogger("").addHandler(handler);
-        final File logFileInfo;
-        if (dryRun)
-        {
-            logFileInfo = new File(new File(args[0]),
-                "/tools/var/log/DRY_CLEANUP-INFO-" + timestamp);
-        }
-        else
-        {
-            logFileInfo = new File(new File(args[0] + "/upload/"),
-                "CLEANUP-INFO-" + timestamp);
-        }
-        final StreamHandler handlerInfo = new StreamHandler(
-            new FileOutputStream(logFileInfo, true), new SimpleFormatter());
-        handlerInfo.setLevel(Level.INFO);
-        Logger.getLogger("").addHandler(handlerInfo);
-        setLogLevel();
-        logger.setLevel(Level.ALL);
-    }
-   
-    private static final List<Logger> LOGGER_LINK = new ArrayList<Logger>();
-
-    private static void setLogLevel ()
-    {
-        Logger.getLogger("").setLevel(Level.FINEST);
-        LOGGER_LINK.add(Logger.getLogger("org.apache.commons"));
-        Logger.getLogger("org.apache").setLevel(Level.WARNING);
-        LOGGER_LINK.add(Logger.getLogger("com.sun"));
-        Logger.getLogger("com.sun").setLevel(Level.WARNING);
-        LOGGER_LINK.add(Logger.getLogger("javax.xml"));
-        Logger.getLogger("javax.xml").setLevel(Level.WARNING);
-        LOGGER_LINK.add(Logger.getLogger("org.jcoderz.mb.MbClient"));
-        Logger.getLogger("org.jcoderz.mb.MbClient").setLevel(Level.INFO);
-        LOGGER_LINK.add(Logger.getLogger("org.jaudiotagger"));
-        Logger.getLogger("org.jaudiotagger").setLevel(Level.WARNING);
-    }
 
     /**
      * Create a {@link RefreshRepository} instance, that can work on a

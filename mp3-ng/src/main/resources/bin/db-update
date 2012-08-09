@@ -1,38 +1,41 @@
 #!/bin/bash
 
+# Go recursively up to find the mountpoint
+# $1 - path
 function findmountpoint()
 {
   dir=$(dirname $1)
   mountpoint $dir
-  RC=$?
-  if [ "$RC" != 0 ]
+  if [ "$?" != 0 ]
   then
-    find
+    findmountpoint $(dirname $dir)
+  else
+    mp=$dir
   fi
 }
 
-if [ -z "$MEDIA_LIBRARY_ROOT" ]
+script=$(readlink -f $0)
+
+if [ -z "$M3_LIBRARY_HOME" ]
 then
-  # canoncialize the path
-  #script=$(readlink -f $0)
-  MEDIA_LIBRARY_ROOT=/media/0B83-851C
+  findmountpoint $script
+  M3_LIBRARY_HOME=$mp
 fi
 
+m3util=$(basename $script)
+
+echo "### Assuming $M3_LIBRARY_HOME as media library root!"
+
+source $M3_LIBRARY_HOME/tools/etc/m3util.conf
 
 if [ -z "$JAVA_HOME" ]
 then
-  export JAVA_HOME=$MEDIA_LIBRARY_ROOT/tools/lib/jre1.7.0_05
+  export JAVA_HOME=$M3_LIBRARY_HOME/tools/lib/jre1.7.0_05
   export PATH=$PATH:$JAVA_HOME/bin
   export LD_LIBRARY_PATH=$PATH:$JAVA_HOME/lib
 fi
 
-export CLASSPATH=$MEDIA_LIBRARY_ROOT/tools/lib/jcoderz-mp3/mp3-ng-1.0.0.SNAPSHOT.jar:$MEDIA_LIBRARY_ROOT/tools/lib/jcoderz-mp3/fawkez-commons-2.0.0.jar:$MEDIA_LIBRARY_ROOT/tools/lib/jcoderz-mp3/lucene-core-3.6.0.jar
+export CLASSPATH=$M3_LIBRARY_HOME/tools/lib/m3util/mp3-ng-1.0.0-SNAPSHOT.jar:$M3_LIBRARY_HOME/tools/lib/m3util/fawkez-commons-2.0.0.jar:$M3_LIBRARY_HOME/tools/lib/m3util/lucene-core-3.6.0.jar:$M3_LIBRARY_HOME/tools/lib/m3util/jaudiotagger-2.0.3.jar
 
-java org.jcoderz.mp3.intern.lucene.DatabaseUpdater $MEDIA_LIBRARY_ROOT
+java -DM3_LIBRARY_HOME=$M3_LIBRARY_HOME org.jcoderz.mp3.intern.lucene.DatabaseUpdater $M3_LIBRARY_HOME $*
 
-#source $MEDIA_LIBRARY_ROOT/tools/etc/db-update
-
-function findroot ()
-{
-  dirname
-}

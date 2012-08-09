@@ -1,12 +1,14 @@
 package org.jcoderz.mp3.intern.lucene;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.jcoderz.commons.util.DirTreeListener;
 import org.jcoderz.commons.util.DirTreeWalker;
 import org.jcoderz.mp3.intern.MusicBrainzMetadata;
 import org.jcoderz.mp3.intern.TagQuality;
+import org.jcoderz.mp3.intern.util.LoggingUtil;
 
 /**
  * The class DatabaseUpdater iterates through all folders of different quality levels and
@@ -17,7 +19,7 @@ import org.jcoderz.mp3.intern.TagQuality;
  */
 public class DatabaseUpdater implements DirTreeListener {
 	private static final String CLASSNAME = DatabaseUpdater.class.getName();
-	private static final Logger LOGGER = Logger.getLogger(CLASSNAME);
+	private static final Logger logger = Logger.getLogger(CLASSNAME);
 
 	final File mRepositoryBase;
 	final File mLuceneBase;
@@ -36,13 +38,15 @@ public class DatabaseUpdater implements DirTreeListener {
 	 * 
 	 * <p>
 	 * Indexing only the gold folder can be done like this: DatabaseUpdater
-	 * /media/usb GOLD
+	 * /media/usb GOLDhandlerInfo
 	 * </p>
 	 * 
 	 * @param args
 	 *            the command line arguments
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
+		LoggingUtil.initLogging(logger);
+
 		DatabaseUpdater du = new DatabaseUpdater(new File(args[0]));
 		if (args.length > 1) {
 			for (int i = 1; i < args.length; i++) {
@@ -77,10 +81,12 @@ public class DatabaseUpdater implements DirTreeListener {
 	 *            the quality tag which determines the sub-folder
 	 */
 	public void refresh(TagQuality quality) {
-		final DirTreeWalker walker = new DirTreeWalker(new File(
-				mRepositoryBase, "audio/" + quality.getSubdir() + "/"), this);
+		final File root = new File(
+				mRepositoryBase, "audio/" + quality.getSubdir() + "/");
+		final DirTreeWalker walker = new DirTreeWalker(root, this);
 		mLucene.open(mLuceneBase);
 		try {
+			logger.info("Scanning tree under " + root);
 			walker.start();
 		} finally {
 			mLucene.close();
@@ -89,12 +95,12 @@ public class DatabaseUpdater implements DirTreeListener {
 
 	@Override
 	public void enteringDir(File dir) {
-		LOGGER.info("ENTERING: " + dir);
+		logger.info("ENTERING: " + dir);
 	}
 
 	@Override
 	public void exitingDir(File dir) {
-		LOGGER.info("EXITING: " + dir);
+		logger.info("EXITING: " + dir);
 	}
 
 	@Override
@@ -104,7 +110,7 @@ public class DatabaseUpdater implements DirTreeListener {
 			if (mb.getUuid() != null) {
 				mLucene.updateDocument(DocumentUtil.create(mb));
 			} else {
-				LOGGER.warning("File has no uuid and thus will not be added to the index: "
+				logger.warning("File has no uuid and thus will not be added to the index: "
 						+ mb);
 			}
 		}
