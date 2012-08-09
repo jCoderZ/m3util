@@ -19,7 +19,7 @@ script=$(readlink -f $0)
 if [ -z "$M3_LIBRARY_HOME" ]
 then
   findmountpoint $script
-  M3_LIBRARY_HOME=$mp
+  export M3_LIBRARY_HOME=$mp
 fi
 
 m3util=$(basename $script)

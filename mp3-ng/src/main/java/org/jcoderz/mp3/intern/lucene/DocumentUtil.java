@@ -64,12 +64,14 @@ public class DocumentUtil {
 		addField(result, ARTIST, mb.getArtist());
 		addField(result, TITLE, mb.getTitle());
 		addField(result, ALBUM_TITLE, mb.getAlbum());
-		// calculate???
+
+		// a RuntimeException might be thrown when the file is corrupt
 		String sha1 = mb.getSha1();
 		if (sha1 == null) {
 			sha1 = Mp3Util.calcAudioFramesSha1(mb.getFile());
 		}
 		addField(result, SHA1, sha1, Field.Index.NOT_ANALYZED);
+
 		final int year = mb.getYear();
 		if (1800 < year) {
 			addField(result, RELEASE_YEAR, Integer.toString(year));

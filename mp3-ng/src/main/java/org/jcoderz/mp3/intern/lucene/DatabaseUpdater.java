@@ -96,12 +96,12 @@ public class DatabaseUpdater implements DirTreeListener {
 
 	@Override
 	public void enteringDir(File dir) {
-		logger.info("ENTERING: " + dir);
+		logger.finest("ENTERING: " + dir);
 	}
 
 	@Override
 	public void exitingDir(File dir) {
-		logger.info("EXITING: " + dir);
+		logger.finest("EXITING: " + dir);
 	}
 
 	@Override
@@ -110,6 +110,7 @@ public class DatabaseUpdater implements DirTreeListener {
 			final MusicBrainzMetadata mb = new MusicBrainzMetadata(file);
 			if (mb.getUuid() != null) {
 				try {
+					logger.info("Adding file " + mb + "to the Lucene index");
 					mLucene.updateDocument(DocumentUtil.create(mb));
 				} catch (Exception ex) {
 					logger.warning("Failure creating Lucene document for file "

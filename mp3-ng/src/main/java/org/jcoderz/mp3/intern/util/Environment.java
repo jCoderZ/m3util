@@ -54,6 +54,15 @@ public class Environment {
 	}
 
 	/**
+	 * The configuration folder.
+	 * 
+	 * @return the config folder
+	 */
+	public static File getConfigFolder() {
+		return new File(getLibraryHome(), "tools/etc");
+	}
+
+	/**
 	 * The library log folder.
 	 * 
 	 * @return the log folder

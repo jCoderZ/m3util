@@ -26,7 +26,7 @@ public class DumpSha1Checker
     
     /**
      * Utility method to use this class as a main class. 
-     * Should be dropped once {@link org.jcoderz.mp3.Mp3Util} is ready for use.
+     * Should be dropped once {@link org.jcoderz.mp3.M3Util} is ready for use.
      * Takes up to 3 arguments:
      * <ol>
      * <li>directory of reference mp3s</li>

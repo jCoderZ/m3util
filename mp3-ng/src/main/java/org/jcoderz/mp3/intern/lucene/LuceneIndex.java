@@ -2,6 +2,8 @@ package org.jcoderz.mp3.intern.lucene;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -22,6 +24,9 @@ import org.apache.lucene.util.Version;
  * @author mrumpf
  */
 public class LuceneIndex {
+	private static final String CLASSNAME = LuceneIndex.class.getName();
+	private static final Logger logger = Logger.getLogger(CLASSNAME);
+
 	private IndexWriter writer = null;
 
 	/**
@@ -34,10 +39,11 @@ public class LuceneIndex {
 	public boolean open(File indexPath) {
 		boolean result = false;
 		try {
+			logger.info("Opening Lucene index from " + indexPath);
 			Directory dir = FSDirectory.open(indexPath);
 			result = open(dir);
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			logger.log(Level.SEVERE, "Could not open Lucene index", ex);
 		}
 		return result;
 	}
@@ -59,7 +65,7 @@ public class LuceneIndex {
 			writer = new IndexWriter(dir, iwc);
 			result = true;
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			logger.log(Level.SEVERE, "Could not create or open the Lucene index", ex);
 		}
 		return result;
 	}
@@ -81,7 +87,7 @@ public class LuceneIndex {
 				result = true;
 			}
 		} catch (IOException ex) {
-			ex.printStackTrace();
+			logger.log(Level.WARNING, "Could not update document " + doc, ex);
 		}
 		return result;
 	}
@@ -98,7 +104,7 @@ public class LuceneIndex {
 				writer.close();
 				result = true;
 			} catch (IOException ex) {
-				ex.printStackTrace();
+				logger.log(Level.WARNING, "Could not close Lucene index", ex);
 			}
 		}
 		return result;

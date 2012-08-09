@@ -1,6 +1,6 @@
 package org.jcoderz.mp3;
 
-public class Mp3Util {
+public class M3Util {
 
 	/**
 	 * @param args
