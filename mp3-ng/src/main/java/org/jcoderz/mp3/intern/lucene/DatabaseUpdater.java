@@ -107,18 +107,18 @@ public class DatabaseUpdater implements DirTreeListener {
 	@Override
 	public void file(File file) {
 		if (file.getName().endsWith(".mp3")) {
-			final MusicBrainzMetadata mb = new MusicBrainzMetadata(file);
-			if (mb.getUuid() != null) {
-				try {
+			try {
+				final MusicBrainzMetadata mb = new MusicBrainzMetadata(file);
+				if (mb.getUuid() != null) {
 					logger.info("Adding file " + mb + "to the Lucene index");
 					mLucene.updateDocument(DocumentUtil.create(mb));
-				} catch (Exception ex) {
-					logger.warning("Failure creating Lucene document for file "
+				} else {
+					logger.warning("File has no uuid and thus will not be added to the index: "
 							+ mb);
 				}
-			} else {
-				logger.warning("File has no uuid and thus will not be added to the index: "
-						+ mb);
+			} catch (Exception ex) {
+				logger.warning("Failure adding file " + file
+						+ " to the Lucene index");
 			}
 		}
 	}
