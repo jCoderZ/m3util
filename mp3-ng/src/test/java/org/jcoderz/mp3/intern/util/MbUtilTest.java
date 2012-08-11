@@ -16,9 +16,7 @@ public class MbUtilTest
     @Test
     public void test ()
     {
-        // final MbClient client = new MbClient();
-        // client.setRecordDir(TestUtil.getMbServerBasePath());
-        final MbClient client = new MbClient("file:///" + TestUtil.getMbServerBasePath().getAbsolutePath());
+        final MbClient client = TestUtil.getMbClient();
         final MusicBrainzMetadata mb = new MusicBrainzMetadata(
             new File(TestUtil.getMp3BasePath(), 
                 "unsorted/17 - Ville Valo & Natalia Avelon - Summer Wine (film version).mp3"));

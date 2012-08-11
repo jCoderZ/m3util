@@ -45,6 +45,7 @@ import org.jcoderz.mb.type.Medium.TrackList.Track;
 import org.jcoderz.mb.type.TrackData;
 import org.jcoderz.mp3.intern.CoverArt.ImageData;
 import org.jcoderz.mp3.intern.util.Id3Util;
+import org.jcoderz.mp3.intern.util.MbUtil;
 import org.jcoderz.mp3.intern.util.Mp3Util;
 
 // TODO: Id3Lib fix MUSICBRAINZ_TRACK_ID handling
@@ -1157,7 +1158,9 @@ public class MusicBrainzMetadata
         {
             changed = setGenre("(24)Soundtrack") || changed;
         }
-        else if (type.contains("audiobook") || type.contains("spokenword"))
+        else if (release != null 
+        		&& release.getReleaseGroup() != null 
+        		&& MbUtil.isStory(release.getReleaseGroup()))
         {
             changed = setGenre("(28)Vocal") || changed;
         }

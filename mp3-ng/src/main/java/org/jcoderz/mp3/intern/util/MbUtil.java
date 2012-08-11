@@ -5,6 +5,7 @@ package org.jcoderz.mp3.intern.util;
 
 import java.text.Collator;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 import org.jcoderz.commons.util.Assert;
@@ -12,7 +13,9 @@ import org.jcoderz.mb.MbClient;
 import org.jcoderz.mb.type.Includes;
 import org.jcoderz.mb.type.Recording;
 import org.jcoderz.mb.type.Release;
+import org.jcoderz.mb.type.ReleaseGroup;
 import org.jcoderz.mb.type.TrackData;
+import org.jcoderz.mb.type.Type;
 import org.jcoderz.mp3.intern.MusicBrainzMetadata;
 
 /**
@@ -27,6 +30,40 @@ public final class MbUtil
     private MbUtil()
     {
         // No instances.
+    }
+    
+    /**
+     * Checks if there are indications that the given release group is 
+     * of type story (either Spokenword, Audiobook, or Interview).
+     * Supports the 'New' MB secondary-type-list.
+     * @param rg the release group to be examined.
+     * @return true for release groups of type story.
+     */
+    public static boolean isStory (ReleaseGroup rg)
+    {
+    	boolean result = false;
+    	result = isStory(rg.getType());
+    	if (!result && rg.getSecondaryTypeList() != null)
+    	{
+    		final List<String> secondaryType = rg.getSecondaryTypeList().getSecondaryType();
+    		for (String type : secondaryType)
+    		{
+    			if (isStory(type))
+    			{
+    				result = true;
+    				break;
+    			}
+    		}
+    	}
+    	return result;
+    }
+    
+    private static boolean isStory(String type)
+    {
+        return Type.SPOKENWORD.toString().equalsIgnoreCase(type) 
+            || Type.AUDIOBOOK.toString().equalsIgnoreCase(type)
+            || Type.INTERVIEW.toString().equalsIgnoreCase(type);
+    	
     }
     
     /**

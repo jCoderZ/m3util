@@ -17,6 +17,7 @@ import org.jcoderz.mb.type.Recording;
 import org.jcoderz.mb.type.Release;
 import org.jcoderz.mb.type.Type;
 import org.jcoderz.mp3.intern.util.FileUtil;
+import org.jcoderz.mp3.intern.util.MbUtil;
 
 /**
  * Class is capable to determine the file location based on the available metadata.
@@ -84,10 +85,7 @@ public final class FileLocation
         
         final String type = ObjectUtil.toStringOrEmpty(rel.getReleaseGroup().getType());
         
-        mIsStory 
-            = Type.SPOKENWORD.toString().equalsIgnoreCase(type) 
-                || Type.AUDIOBOOK.toString().equalsIgnoreCase(type)
-                || Type.INTERVIEW.toString().equalsIgnoreCase(type);
+        mIsStory = MbUtil.isStory(rel.getReleaseGroup());
         mIsSoundtrack = Type.SOUNDTRACK.toString().equalsIgnoreCase(type);
         mTrackNumber = -1;
         if (rel.getMediumList().getMedium().get(0).getTrackList().getDefTrack().size() == 1)
@@ -468,5 +466,10 @@ out:
         setIsFileCollision(false);
         setComplete(true);
         setSingle(false);
+    }
+    
+    public String toString()
+    {
+    	return getPath() + '/' + getFilename();
     }
 }

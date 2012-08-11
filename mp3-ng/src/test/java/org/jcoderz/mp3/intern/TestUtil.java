@@ -4,11 +4,26 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
+import org.jcoderz.mb.MbClient;
 import org.junit.Test;
 
 public class TestUtil
 {
 
+	/**
+	 * Used to switch between stored test data and live mb system.
+	 * @return the {@link MbClient} to be used in testcases.
+	 */
+	public static MbClient getMbClient()
+	{
+		//final MbClient client = new MbClient();
+	    //client.setRecordDir(TestUtil.getMbServerBasePath());
+	    final MbClient client 
+	    	= new MbClient("file:///" + TestUtil.getMbServerBasePath().getAbsolutePath());
+	    return client;
+	}
+
+	
     public static File getMp3BasePath ()
     {
         return new File(getBasePath(), "mp3metadata");
