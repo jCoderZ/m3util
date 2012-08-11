@@ -83,6 +83,8 @@ public final class RefreshRepository
       final String mbServerHostname = "http://mb-box:5000";
       // final String mbServerHostname = "file:///c:/tmp/mb/";
       
+      
+      
       LoggingUtil.initLogging(logger, "DRY-CLEANUP");
       logger.info("---- !START! ----");
       logger.info("----  RefreshRepository '" + args[0] + "'");
@@ -784,6 +786,7 @@ public final class RefreshRepository
                         + album.get(0).getFile().getParent() 
                         + " is contained in album at "
                         + existing.get(0).getFile().getParent());
+                    setDupePos(filePos, mb);
                 }
                 else
                 { // is the not the same album,
