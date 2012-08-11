@@ -86,7 +86,7 @@ public final class FileLocation
         final String type = ObjectUtil.toStringOrEmpty(rel.getReleaseGroup().getType());
         
         mIsStory = MbUtil.isStory(rel.getReleaseGroup());
-        mIsSoundtrack = Type.SOUNDTRACK.toString().equalsIgnoreCase(type);
+        mIsSoundtrack = MbUtil.isSoundtrack(rel.getReleaseGroup());
         mTrackNumber = -1;
         if (rel.getMediumList().getMedium().get(0).getTrackList().getDefTrack().size() == 1)
         {

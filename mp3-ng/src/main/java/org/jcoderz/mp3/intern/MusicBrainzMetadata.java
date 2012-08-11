@@ -1154,7 +1154,9 @@ public class MusicBrainzMetadata
         changed = setAlbumType(type) || changed;
         
          
-        if (type.contains("soundtrack"))
+        if (release != null 
+        		&& release.getReleaseGroup() != null 
+        		&& MbUtil.isSoundtrack(release.getReleaseGroup()))
         {
             changed = setGenre("(24)Soundtrack") || changed;
         }

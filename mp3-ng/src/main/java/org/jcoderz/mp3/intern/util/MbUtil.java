@@ -34,6 +34,32 @@ public final class MbUtil
     
     /**
      * Checks if there are indications that the given release group is 
+     * of type soundtrack.
+     * Supports the 'New' MB secondary-type-list.
+     * @param rg the release group to be examined.
+     * @return true for release groups of type story.
+     */
+    public static boolean isSoundtrack (ReleaseGroup rg)
+    {
+    	boolean result = false;
+    	result = Type.SOUNDTRACK.toString().equalsIgnoreCase(rg.getType());
+    	if (!result && rg.getSecondaryTypeList() != null)
+    	{
+    		final List<String> secondaryType = rg.getSecondaryTypeList().getSecondaryType();
+    		for (String type : secondaryType)
+    		{
+    			if (Type.SOUNDTRACK.toString().equalsIgnoreCase(type))
+    			{
+    				result = true;
+    				break;
+    			}
+    		}
+    	}
+    	return result;
+    }
+
+    /**
+     * Checks if there are indications that the given release group is 
      * of type story (either Spokenword, Audiobook, or Interview).
      * Supports the 'New' MB secondary-type-list.
      * @param rg the release group to be examined.
