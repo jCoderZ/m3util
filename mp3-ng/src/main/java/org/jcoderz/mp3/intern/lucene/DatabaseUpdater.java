@@ -2,6 +2,7 @@ package org.jcoderz.mp3.intern.lucene;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jcoderz.commons.util.DirTreeListener;
@@ -31,16 +32,6 @@ public class DatabaseUpdater implements DirTreeListener {
 	 * one parameters. The first parameter must be the root of the media
 	 * library. The following parameters are TagQuality identifiers which
 	 * determine the sub-folder to index.
-	 * 
-	 * <p>
-	 * The following command will update all audio folders: DatabaseUpdater
-	 * /media/usb
-	 * </p>
-	 * 
-	 * <p>
-	 * Indexing only the gold folder can be done like this: DatabaseUpdater
-	 * /media/usb GOLDhandlerInfo
-	 * </p>
 	 * 
 	 * @param args
 	 *            the command line arguments
@@ -109,6 +100,7 @@ public class DatabaseUpdater implements DirTreeListener {
 		if (file.getName().endsWith(".mp3")) {
 			try {
 				final MusicBrainzMetadata mb = new MusicBrainzMetadata(file);
+				// TODO: Use path as index!!!
 				if (mb.getUuid() != null) {
 					logger.info("Adding file " + mb + "to the Lucene index");
 					mLucene.updateDocument(DocumentUtil.create(mb));
@@ -117,8 +109,8 @@ public class DatabaseUpdater implements DirTreeListener {
 							+ mb);
 				}
 			} catch (Exception ex) {
-				logger.warning("Failure adding file " + file
-						+ " to the Lucene index");
+				logger.log(Level.WARNING, "Failure adding file " + file
+						+ " to the Lucene index", ex);
 			}
 		}
 	}
