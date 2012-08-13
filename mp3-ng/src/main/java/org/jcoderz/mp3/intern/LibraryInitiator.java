@@ -8,6 +8,9 @@ import org.jcoderz.mp3.intern.types.TagQuality;
 import org.jcoderz.mp3.intern.util.Environment;
 
 /**
+ * This class creates the media library folder structure and populates the
+ * folders with the libraries necessary to run all tools which are part of the
+ * library.
  * 
  * @author mrumpf
  * 
@@ -20,8 +23,42 @@ public class LibraryInitiator {
 		// ...
 	}
 
+	/**
+	 * Create a media library folder structure at the M3_LIBRARY_HOME location
+	 * or at the current working directory.
+	 */
 	public void create() {
 		File libHome = Environment.getLibraryHome();
+		if (libHome == null) {
+			libHome = new File(new File(System.getProperty("user.dir")), "m3");
+			logger.warning("Using m3 folder in current working directory as library root");
+			// TODO: ask user to create m3 folder at current working dir
+		}
+
+		if (!libHome.exists()) {
+			boolean success = libHome.mkdirs();
+			if (!success) {
+				throw new RuntimeException("Could not create M3_LIBRARY_HOME="
+						+ libHome);
+			}
+		} else {
+			if (libHome.isFile()) {
+				throw new RuntimeException("M3_LIBRARY_HOME=" + libHome
+						+ " is not a directory!");
+			}
+		}
+
+		create(libHome);
+	}
+
+	/**
+	 * Creates a media library folder structure at the specified location.
+	 * 
+	 * @param libHome
+	 *            the root folder where to create the media library directory
+	 *            tree
+	 */
+	public void create(File libHome) {
 		File audioFolder = createFolder(libHome, "audio");
 		for (TagQuality tq : TagQuality.values()) {
 			createFolder(audioFolder, tq.getSubdir());
@@ -33,6 +70,8 @@ public class LibraryInitiator {
 		File libFolder = createFolder(toolsFolder, "lib");
 		createFolder(libFolder, "jdk");
 		createFolder(libFolder, "jboss-as");
+		createFolder(libFolder, "m3util");
+		createFolder(libFolder, "m3server");
 		File varFolder = createFolder(toolsFolder, "var");
 		File varLibFolder = createFolder(varFolder, "lib");
 		createFolder(varLibFolder, "db");
@@ -51,16 +90,27 @@ public class LibraryInitiator {
 						+ " but must be a folder!");
 			}
 		} else {
-			folder.mkdir();
+			boolean success = folder.mkdir();
+			if (!success) {
+				throw new RuntimeException("Could not create folder " + folder);
+			}
 		}
 		return folder;
 	}
 
 	/**
+	 * This command line entry point can be called with either one or more than
+	 * one parameters. The first parameter must be the root of the media
+	 * library.
+	 * 
 	 * @param args
+	 *            the command line arguments
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		LibraryInitiator li = new LibraryInitiator();
+		File home = new File("/tmp/m3");
+		home.mkdirs();
+		li.create(home);
 
 	}
 
