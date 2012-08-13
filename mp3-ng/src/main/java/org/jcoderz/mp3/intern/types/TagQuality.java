@@ -1,4 +1,4 @@
-package org.jcoderz.mp3.intern;
+package org.jcoderz.mp3.intern.types;
 
 /**
  * This enumeration defines the different tag quality levels.

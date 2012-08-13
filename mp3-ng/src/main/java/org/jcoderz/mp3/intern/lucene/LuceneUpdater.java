@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import org.jcoderz.commons.util.DirTreeListener;
 import org.jcoderz.commons.util.DirTreeWalker;
 import org.jcoderz.mp3.intern.MusicBrainzMetadata;
-import org.jcoderz.mp3.intern.TagQuality;
+import org.jcoderz.mp3.intern.types.TagQuality;
 import org.jcoderz.mp3.intern.util.Environment;
 import org.jcoderz.mp3.intern.util.LoggingUtil;
 
@@ -19,8 +19,8 @@ import org.jcoderz.mp3.intern.util.LoggingUtil;
  * @author amandel
  * @author mrumpf
  */
-public class DatabaseUpdater implements DirTreeListener {
-	private static final String CLASSNAME = DatabaseUpdater.class.getName();
+public class LuceneUpdater implements DirTreeListener {
+	private static final String CLASSNAME = LuceneUpdater.class.getName();
 	private static final Logger logger = Logger.getLogger(CLASSNAME);
 
 	final File mRepositoryBase;
@@ -39,7 +39,7 @@ public class DatabaseUpdater implements DirTreeListener {
 	public static void main(String[] args) throws IOException {
 		LoggingUtil.initLogging(logger);
 
-		DatabaseUpdater du = new DatabaseUpdater();
+		LuceneUpdater du = new LuceneUpdater();
 		if (args.length > 1) {
 			for (int i = 1; i < args.length; i++) {
 				du.refresh(TagQuality.valueOf(args[1]));
@@ -59,7 +59,7 @@ public class DatabaseUpdater implements DirTreeListener {
 	 *            the base directory. The lucene index is located under
 	 *            $base/tools/var/db/licene.
 	 */
-	public DatabaseUpdater() {
+	public LuceneUpdater() {
 		mRepositoryBase = Environment.getLibraryHome();
 		mLuceneBase = Environment.getLuceneFolder();
 		mLuceneBase.mkdirs();

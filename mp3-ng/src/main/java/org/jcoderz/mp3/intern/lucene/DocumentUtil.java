@@ -10,7 +10,7 @@ import org.apache.lucene.document.Field.Index;
 import org.jcoderz.commons.types.Date;
 import org.jcoderz.commons.util.ObjectUtil;
 import org.jcoderz.mp3.intern.MusicBrainzMetadata;
-import org.jcoderz.mp3.intern.TagQuality;
+import org.jcoderz.mp3.intern.types.TagQuality;
 import org.jcoderz.mp3.intern.util.Mp3Util;
 
 /**

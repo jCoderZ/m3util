@@ -12,8 +12,8 @@ import org.jcoderz.commons.util.DirTreeListener;
 import org.jcoderz.commons.util.DirTreeWalker;
 import org.jcoderz.commons.util.StringUtil;
 import org.jcoderz.mp3.intern.MusicBrainzMetadata;
-import org.jcoderz.mp3.intern.TagQuality;
 import org.jcoderz.mp3.intern.db.types.MediaFile;
+import org.jcoderz.mp3.intern.types.TagQuality;
 import org.jcoderz.mp3.intern.util.Environment;
 
 /**
