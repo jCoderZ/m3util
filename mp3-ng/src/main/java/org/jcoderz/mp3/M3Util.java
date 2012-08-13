@@ -7,6 +7,15 @@ import org.jcoderz.mp3.intern.db.DatabaseUpdater;
 import org.jcoderz.mp3.intern.lucene.LuceneUpdater;
 import org.jcoderz.mp3.intern.types.TagQuality;
 
+/**
+ * 
+ * <ul>
+ * <li>http://pholser.github.com/jopt-simple/examples.html</li>
+ * </ul>
+ * 
+ * @author mrumpf
+ *
+ */
 public class M3Util {
 
 	/**
