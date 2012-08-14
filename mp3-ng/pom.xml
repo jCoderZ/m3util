@@ -107,7 +107,7 @@
 					</descriptorRefs>
 					<archive>
 						<manifest>
-							<mainClass>org.jcoderz.mp3.Mp3Util</mainClass>
+							<mainClass>org.jcoderz.mp3.M3Util</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
