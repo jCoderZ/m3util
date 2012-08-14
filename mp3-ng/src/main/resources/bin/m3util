@@ -4,29 +4,29 @@
 # $1 - path
 function findmountpoint()
 {
-  dir=$(dirname $1)
-  mountpoint $dir
+  mountpoint $1 > /dev/null
   if [ "$?" != 0 ]
   then
-    findmountpoint $(dirname $dir)
+    findmountpoint $(dirname $1)
   else
-    mp=$dir
+    mp=$1
   fi
 }
 
-script=$(readlink -f $0)
+folder="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 if [ -z "$M3_LIBRARY_HOME" ]
 then
-  findmountpoint $script
-  export M3_LIBRARY_HOME=$mp
+  findmountpoint $folder
 fi
 
-m3util=$(basename $script)
+export M3_LIBRARY_HOME=$mp
+
+script=$(basename $0)
 
 echo "### Assuming $M3_LIBRARY_HOME as media library root!"
 
-source $M3_LIBRARY_HOME/tools/etc/m3util.conf
+source $M3_LIBRARY_HOME/tools/etc/$script.conf
 
 if [ -z "$JAVA_HOME" ]
 then
@@ -35,7 +35,4 @@ then
   export LD_LIBRARY_PATH=$PATH:$JAVA_HOME/lib
 fi
 
-export CLASSPATH=$M3_LIBRARY_HOME/tools/lib/m3util/mp3-ng-1.0.0-SNAPSHOT.jar:$M3_LIBRARY_HOME/tools/lib/m3util/fawkez-commons-2.0.0.jar:$M3_LIBRARY_HOME/tools/lib/m3util/lucene-core-3.6.0.jar:$M3_LIBRARY_HOME/tools/lib/m3util/jaudiotagger-2.0.3.jar
-
-java -DM3_LIBRARY_HOME=$M3_LIBRARY_HOME org.jcoderz.mp3.Mp3Util $*
-
+java -DM3_LIBRARY_HOME=$M3_LIBRARY_HOME -jar $M3_LIBRARY_HOME/tools/lib/m3util/mp3-ng-1.0.0-SNAPSHOT-jar-with-dependencies.jar $*
