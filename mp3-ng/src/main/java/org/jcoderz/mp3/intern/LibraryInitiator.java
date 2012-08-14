@@ -77,6 +77,8 @@ public class LibraryInitiator {
 		createFolder(varLibFolder, "db");
 		createFolder(varLibFolder, "lucene");
 		createFolder(varFolder, "log");
+		File cacheFolder = createFolder(varFolder, "cache");
+		createFolder(cacheFolder, "images");
 		createFolder(libHome, "incoming");
 	}
 
