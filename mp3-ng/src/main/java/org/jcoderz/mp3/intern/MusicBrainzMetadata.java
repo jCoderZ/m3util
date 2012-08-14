@@ -202,7 +202,7 @@ public class MusicBrainzMetadata
         if (mMediaFile.getID3v2Tag() != null)
         {
             setGenre(Id3Util.fixGenre(mMediaFile.getID3v2Tag()));
-            removeTxxxFrame("MusicIP PUID");
+            // KEEP removeTxxxFrame("MusicIP PUID");
             removeTxxxFrame("MusicMagic Data");
             removeTxxxFrame("MusicMagic Fingerprint");
             removeTxxxFrame("MusicIP Data");
@@ -878,8 +878,13 @@ public class MusicBrainzMetadata
           ID3v23Frame frame = new ID3v23Frame(ID3v23Frames.FRAME_ID_V3_USER_DEFINED_INFO);
           fb = new FrameBodyTXXX(TextEncoding.ISO_8859_1, desc, value);
           frame.setBody(fb);
-          final List<AbstractID3v2Frame> txxxFrames 
+          List<AbstractID3v2Frame> txxxFrames 
               =  (List<AbstractID3v2Frame>) getId3V2Tag().getFrame(ID3v23Frames.FRAME_ID_V3_USER_DEFINED_INFO);
+          if (txxxFrames == null)
+          {
+        	  txxxFrames = new ArrayList<AbstractID3v2Frame>();
+        	  getId3V2Tag().setFrame(ID3v23Frames.FRAME_ID_V3_USER_DEFINED_INFO, txxxFrames);
+          }
           // DELETE NOT NEEDED.....
           txxxFrames.add(frame);
           LOGGER.fine("New frame '" + desc + "' == '" + value + "'.");
@@ -1192,7 +1197,7 @@ public class MusicBrainzMetadata
         
         if (StringUtil.isNullOrEmpty(getUuid()))
         {
-            changed = setUuid(UUID.randomUUID().toString()) || changed;
+            changed = addUuid() || changed;
         }
 
         if (release != null && release.getTextRepresentation() != null)
@@ -1222,12 +1227,30 @@ public class MusicBrainzMetadata
         if (StringUtil.isNullOrEmpty(sha1))
         {
             changed = true;
-            final String calcSha1 = Mp3Util.calcAudioFramesSha1(getFile());
-System.out.println("New SHA1 " + calcSha1 + " - " + getFile());            
-            setSha1(calcSha1);
+            addSha1();
         }
         return changed;
     }
+
+    /**
+     * Create a uuid and add it to the file as Id3Tag.
+     * The Uuid will be newly generated, existing Uuids will be
+     * overwritten.
+     * @return true, always.
+     */
+	public boolean addUuid() {
+		return setUuid(UUID.randomUUID().toString());
+	}
+
+    /**
+     * Calculate the sha1 value for the data stream of this file 
+     * {@see Mp3Util#calcAudioFramesSha1(File)} and store the result in 
+     * a Sha1 id3 tag.
+     */
+	public void addSha1() 
+	{
+		setSha1(Mp3Util.calcAudioFramesSha1(getFile()));
+	}
 
     private String buildAlbumTitle (TrackData data)
     {
