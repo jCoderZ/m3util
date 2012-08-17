@@ -27,7 +27,6 @@ public class DatabaseUpdater implements DirTreeListener {
 	private static final String CLASSNAME = DatabaseUpdater.class.getName();
 	private static final Logger logger = Logger.getLogger(CLASSNAME);
 
-	final File mRepositoryBase;
 	final Date mUpdateRun = new Date();
 
 	/**
@@ -61,8 +60,7 @@ public class DatabaseUpdater implements DirTreeListener {
 	 *            $base/tools/var/lib/db.
 	 */
 	public DatabaseUpdater() {
-		mRepositoryBase = Environment.getLibraryHome();
-		RepositoryDb.startup(mRepositoryBase);
+		RepositoryDb.startup(Environment.getDbFolder());
 	}
 
 	/**
@@ -72,7 +70,7 @@ public class DatabaseUpdater implements DirTreeListener {
 	 *            the quality tag which determines the sub-folder
 	 */
 	public void refresh(TagQuality quality) {
-		final File root = new File(mRepositoryBase, "audio/"
+		final File root = new File(Environment.getLibraryHome(), "audio/"
 				+ quality.getSubdir() + "/");
 		final DirTreeWalker walker = new DirTreeWalker(root, this);
 		try {
@@ -97,11 +95,11 @@ public class DatabaseUpdater implements DirTreeListener {
 		if (file.getName().endsWith(".mp3")) {
 			try {
 				final MusicBrainzMetadata mb = new MusicBrainzMetadata(file);
-				logger.info("Adding file " + mb + "to the Lucene index");
+				logger.info("Adding file " + mb + "to the database index");
 				update(file, mb);
 			} catch (Exception ex) {
 				logger.log(Level.WARNING, "Failure adding file " + file
-						+ " to the Lucene index", ex);
+						+ " to the database index", ex);
 			}
 		}
 	}
