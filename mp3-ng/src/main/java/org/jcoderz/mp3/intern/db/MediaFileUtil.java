@@ -23,6 +23,7 @@ public final class MediaFileUtil
     private static String cutPath (File file)
     {
         final String fullName = file.getAbsolutePath().replace('\\', '/');
+        // TODO: Use TagQuality class to get the names
         Pattern pathCutter = Pattern.compile(".*/((01-gold|02-silver|03-bronze)/.*\\.mp3)");
         Matcher matcher = pathCutter.matcher(fullName);
         matcher.find();
