@@ -11,6 +11,8 @@ import org.jcoderz.commons.util.Assert;
 import org.jcoderz.commons.util.ObjectUtil;
 import org.jcoderz.commons.util.StringUtil;
 import org.jcoderz.mb.MbClient;
+import org.jcoderz.mb.TrackHelper;
+import org.jcoderz.mb.type.ArtistCredit;
 import org.jcoderz.mb.type.Medium;
 import org.jcoderz.mb.type.Medium.TrackList.Track;
 import org.jcoderz.mb.type.Recording;
@@ -88,17 +90,20 @@ public final class FileLocation
         mIsStory = MbUtil.isStory(rel.getReleaseGroup());
         mIsSoundtrack = MbUtil.isSoundtrack(rel.getReleaseGroup());
         mTrackNumber = -1;
+        ArtistCredit trackArtistCredit = recording.getArtistCredit();
         if (rel.getMediumList().getMedium().get(0).getTrackList().getDefTrack().size() == 1)
         {
             Assert.assertEquals("Only one Medium expected in release.", 1, 
                 rel.getMediumList().getMedium().size());
             Assert.assertEquals("Only one Track expected in medium.", 1, 
                 rel.getMediumList().getMedium().get(0).getTrackList().getDefTrack().size());
-            mTrackNumber = rel.getMediumList().getMedium().get(0)
-                .getTrackList().getDefTrack().get(0).getPosition().intValue();
+            final Track track 
+            	= rel.getMediumList().getMedium().get(0).getTrackList().getDefTrack().get(0);
+            trackArtistCredit = TrackHelper.getArtistCredit(track);
+			mTrackNumber = track.getPosition().intValue();
             mAlbum = rel.getTitle(); 
             mAlbumId = rel.getId(); 
-            mTitle = recording.getTitle();             
+            mTitle = TrackHelper.getTitle(track);            
         }
         else
         {
@@ -115,14 +120,9 @@ out:
                     if (t.getRecording().getId().equals(recording.getId()))
                     {
                         mTrackNumber = t.getPosition().intValue();
-                        if (StringUtil.isEmptyOrNull(t.getTitle()))
-                        {
-                            mTitle = recording.getTitle();
-                        }
-                        else
-                        {
-                            mTitle = t.getTitle();
-                        }
+                        mTitle = TrackHelper.getTitle(t);
+                        trackArtistCredit = TrackHelper.getArtistCredit(t);
+                        
                         if (StringUtil.isEmptyOrNull(m.getTitle()))
                         {
                             mAlbum = rel.getTitle(); // TODO: OK??  Medium??
@@ -138,8 +138,8 @@ out:
             Assert.assertTrue("Failed to find recording and medium.", mTrackNumber != -1);
         }
 
-        mArtist = MbClient.getArtist(recording.getArtistCredit());
-        mArtistSortName = MbClient.getArtistSortName(recording.getArtistCredit());
+		mArtist = MbClient.getArtist(trackArtistCredit);
+        mArtistSortName = MbClient.getArtistSortName(trackArtistCredit);
         mAlbumArtist = MbClient.getArtist(rel.getArtistCredit());
         mAlbumArtistSortName = MbClient.getArtistSortName(rel.getArtistCredit());
         mAlbumId = rel.getId();

@@ -63,7 +63,7 @@ public final class RefreshRepository
    private Release mCurrentRelease = null;
    private Medium mCurrentMedium = null;
    
-   
+   	
    // Could be a class knowing all the dirs and structure 
    private final File mRepositoryBasePath;
    private final File mRepositoryMp3Path;
