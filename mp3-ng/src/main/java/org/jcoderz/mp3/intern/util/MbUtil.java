@@ -10,6 +10,7 @@ import java.util.Locale;
 
 import org.jcoderz.commons.util.Assert;
 import org.jcoderz.mb.MbClient;
+import org.jcoderz.mb.TrackHelper;
 import org.jcoderz.mb.type.Includes;
 import org.jcoderz.mb.type.Recording;
 import org.jcoderz.mb.type.Release;
@@ -107,35 +108,44 @@ public final class MbUtil
     public static TrackData getTrackDataWithIdUpdate (MbClient mbClient,
         MusicBrainzMetadata mbData, Release album)
     {
-        final String trackId = mbData.getFileId();
-        Assert.notNull(trackId, "mbData.getFileId()");
-        TrackData track = mbClient.getTrackData(album, trackId);
+        final String currentTrackId = mbData.getFileId();
+        Assert.notNull(currentTrackId, "mbData.getFileId()");
+        TrackData track = mbClient.getTrackData(album, currentTrackId);
         if (track.getMedium() == null)
         {
-            // Try update ....
+            // Try update, get the recording with the old track id.
             final Recording recording 
-                = mbClient.getRecording(trackId, Collections.<Includes> emptySet());
+                = mbClient.getRecording(currentTrackId, Collections.<Includes> emptySet());
             
-            if (!trackId.equals(recording.getId())
-                && ((recording.getLength() == null || 
-                        (Math.abs(mbData.getLengthInMilliSeconds() - recording.getLength().longValue()) > 5000))
+            // There might be different titles in the album vs in the recording :-(
+            // Eg: http://musicbrainz.org/release/58da2396-81a6-4e85-bab9-e623d42840bd
+            //     http://musicbrainz.org/recording/0ca12a54-b5b1-4029-b4eb-4824eb210845
+            //      	Will You Still Love Me Tomorrow  ->  Will You Love Me Tomorrow
+            
+            // find the track in the album:
+            final TrackData updatedTrack 
+            	= mbClient.getTrackData(album, recording.getId());
+            final Long newLength 
+            	= TrackHelper.getLength(updatedTrack.getTrack());
+            final String newTitle 
+            	= TrackHelper.getTitle(updatedTrack.getTrack());
+			if (!currentTrackId.equals(updatedTrack.getTrack().getRecording().getId())
+                && ((newLength == null || 
+                        (Math.abs(mbData.getLengthInMilliSeconds() - newLength) > 5000))
                 && ((recording.getTitle() == null || 
-                        !compare(mbData.getTitle(), recording.getTitle())))))
+                        !compare(mbData.getTitle(), newTitle)))))
             {
                 Assert.fail(
-                    "Length diff to high! Will not use new id (" + trackId
-                        + "->" + recording.getId() + " ---- " + mbData + " ->"
-                        + recording.getTitle() + " len:"
-                        + mbData.getLengthInMilliSeconds() + " -> "
-                        + (recording.getLength() != null ? recording.getLength().longValue() : ""));
+                    "Length diff to high! Will not use new id (" + currentTrackId
+                        + "->" + recording.getId() + " ---- " + mbData + " -> "
+                        + newTitle + " len: "
+                        + mbData.getLengthInMilliSeconds() + " -> " + newLength + ")");
             }
-            
-            
-            track = mbClient.getTrackData(album, recording.getId());
+            track = updatedTrack;
         }
         if (track.getMedium() == null && album != null)
         {
-            Assert.fail("Cold not find track " + trackId + " in Release " + album.getId());
+            Assert.fail("Cold not find track " + currentTrackId + " in Release " + album.getId());
         }
         return track;
     }
