@@ -34,11 +34,12 @@ public final class TrackHelper
 	
 	public static Long getLength(Track track)
 	{
-		final long length;
+		final Long length;
 		if (track.getLength() == null)
 		{
-			length = track.getRecording().getLength() == null 
-					? null : track.getRecording().getLength().longValue();
+			length = track.getRecording() == null 
+					? null : track.getRecording().getLength() == null 
+						? null : track.getRecording().getLength().longValue();
 		}
 		else
 		{
