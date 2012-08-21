@@ -111,78 +111,63 @@ public final class MbUtil
      * @return the TrackData object containing Release, Medium and Track information uniquely 
      *  identifying the song. 
      */
-    public static TrackData getTrackDataWithIdUpdate (MbClient mbClient,
-        MusicBrainzMetadata mbData, Release album)
+    public static TrackData getTrackDataWithIdUpdate (
+    		MbClient mbClient, MusicBrainzMetadata mbData, Release album)
     {
         final String currentTrackId = mbData.getFileId();
         Assert.notNull(currentTrackId, "mbData.getFileId()");
-        TrackData track = mbClient.getTrackData(album, currentTrackId);
+        
+        final Release theAlbum = ensureAlbumContainsMediumInfo(mbClient, album);
+        TrackData track = findTrackData(mbClient, theAlbum, mbData);
         if (track.getMedium() == null)
-        {   // if the id did not match now search without id.
-        	track = findTrackData(mbClient, album, mbData);
+        {   // still not found, search for alternative / updated track id.
+        	track = findTrackDataByRecording(mbClient, mbData, theAlbum);
         }
-        	
-        if (track.getMedium() == null)
+        if (track.getMedium() == null && theAlbum != null)
         {
-            // Try update, get the recording with the old track id.
-            final Recording recording 
-                = mbClient.getRecording(currentTrackId, Collections.<Includes> emptySet());
-            
-            if (recording != null)
-            {
-	            // There might be different titles in the album vs in the recording :-(
-	            // Eg: http://musicbrainz.org/release/58da2396-81a6-4e85-bab9-e623d42840bd
-	            //     http://musicbrainz.org/recording/0ca12a54-b5b1-4029-b4eb-4824eb210845
-	            //      	Will You Still Love Me Tomorrow  ->  Will You Love Me Tomorrow
-	            
-	            // find the track in the album:
-	            final TrackData updatedTrack 
-	            	= mbClient.getTrackData(album, recording.getId());
-	            final Long newLength 
-	            	= TrackHelper.getLength(updatedTrack.getTrack());
-	            final String newTitle 
-	            	= TrackHelper.getTitle(updatedTrack.getTrack());
-				if (!currentTrackId.equals(updatedTrack.getTrack().getRecording().getId())
-	                && ((newLength == null || 
-	                        (Math.abs(mbData.getLengthInMilliSeconds() - newLength) > 5000))
-	                && ((recording.getTitle() == null || 
-	                        !compare(mbData.getTitle(), newTitle)))))
-	            {
-	                Assert.fail(
-	                    "Length diff to high! Will not use new id (" + currentTrackId
-	                        + "->" + recording.getId() + " ---- " + mbData + " -> "
-	                        + newTitle + " len: "
-	                        + mbData.getLengthInMilliSeconds() + " -> " + newLength + ")");
-	            }
-	            track = updatedTrack;
-            }
-            
-            
+            Assert.fail("Cold not find track " + currentTrackId + " in Release " + theAlbum.getId());
         }
-        if (track.getMedium() == null && album != null)
-        {
-            Assert.fail("Cold not find track " + currentTrackId + " in Release " + album.getId());
-        }
+
         return track;
     }
 
-    /**
-     * Search track in album - not using the id.
-     * This method might fail if a album has several media and the song
-     * on the media is on the same position as an other likely named song. 
-     * @param album the album to search in 
-     * @param mbData the file do look for.
-     * @return a TrackData object holding the result.
-     */
-    private static TrackData findTrackData(
-    		MbClient mbClient, Release album, MusicBrainzMetadata mbData) 
-    {
-        Medium medium = null;
-        Track track = null;
-        
-        // Check this...
-        final Release theAlbum;
-        if (album.getMediumList() == null || album.getMediumList().getMedium() == null)
+	private static TrackData findTrackDataByRecording(MbClient mbClient,
+			MusicBrainzMetadata mbData, final Release theAlbum) 
+	{
+		final String fileId = mbData.getFileId();
+		// Try update, get the recording with the old track id.
+		final Recording recording 
+			= mbClient.getRecording(fileId, Collections.<Includes> emptySet());
+		TrackData track = new TrackData(null, null, null);
+		if (recording != null) {
+			// There might be different titles in the album vs in the recording
+			// :-(
+			// Eg:
+			// http://musicbrainz.org/release/58da2396-81a6-4e85-bab9-e623d42840bd
+			// http://musicbrainz.org/recording/0ca12a54-b5b1-4029-b4eb-4824eb210845
+			// Will You Still Love Me Tomorrow -> Will You Love Me Tomorrow
+
+			try 
+			{
+				mbData.setFileId(recording.getId());
+				track = findTrackData(mbClient, theAlbum, mbData);
+				if (track.getMedium() != null)
+				{
+					LOGGER.info("ID Update " + fileId + " -> " + recording.getId() + " for " + mbData);
+				}
+			} 
+			finally 
+			{
+				mbData.setFileId(fileId);
+			}
+		}
+		return track;
+	}
+
+	private static Release ensureAlbumContainsMediumInfo(MbClient mbClient, Release album) 
+	{
+		final Release theAlbum;
+		if (album.getMediumList() == null || album.getMediumList().getMedium() == null)
         {
             theAlbum = mbClient.getRelease(album.getId());
         }
@@ -190,36 +175,61 @@ public final class MbUtil
         {
             theAlbum = album;
         }
+		return theAlbum;
+	}
+
+    public static TrackData findTrackData (
+    		MbClient mbClient, Release album, MusicBrainzMetadata mbData) 
+
+    {
+        Medium medium = null;
+        Track track = null;
+        
+        final Release theAlbum = album;
+        final String fileId = mbData.getFileId();
 out:
         for (Medium m : theAlbum.getMediumList().getMedium())
         {
-            for (Track t : m.getTrackList().getDefTrack())
-            {
-	            final Long newLength = TrackHelper.getLength(t);
-	            if (mbData.getTrackNumber() 
-                		== (t.getPosition() == null ? 0 : t.getPosition().intValue())
-                	&& compare(mbData.getTitle(), TrackHelper.getTitle(t))
-                	&& ((newLength == null || 
-	                        (Math.abs(mbData.getLengthInMilliSeconds() - newLength) > 5000))))
-                {
-	            	if (medium == null)
-	            	{
-	            		medium = m;
-	            		track = t;
-	            	}
-	            	else
-	            	{
-	            		LOGGER.warning("Ambiguous recording can not be matched - will be ignored"
-	            				+ t.getRecording().getId() + " vs. " + track.getRecording().getId()
-	            				+ " in album " + theAlbum.getId());
-	            		medium = null;
-	            		track = null;
-	            		break out;
-	            	}
-                }
+        	final int trackPos 
+        		= mbData.getTrackNumber() - m.getTrackList().getOffset().intValue();
+        	if (trackPos > m.getTrackList().getDefTrack().size())
+        	{
+        		continue;
+        	}
+        	final Track t = m.getTrackList().getDefTrack().get(trackPos - 1);
+    		if (fileId.equals(t.getRecording().getId()))
+            {   // id match wins always!
+                medium = m;
+                track = t;
+                break out;
             }
+    		else if (compare(mbData, t))
+    		{
+            	if (medium == null)
+            	{
+            		medium = m;
+            		track = t;
+            	}
+            	else
+            	{
+            		LOGGER.warning("Ambiguous recording can not be matched - will be ignored"
+            				+ t.getRecording().getId() + " vs. " + track.getRecording().getId()
+            				+ " in album " + theAlbum.getId());
+            		medium = null;
+            		track = null;
+            		break out;
+            	}
+        	}
         }
-        return new TrackData(theAlbum, medium, track);
+        return new TrackData(theAlbum,  medium, track);
+    }
+
+	private static boolean compare(MusicBrainzMetadata mbData, Track t) 
+	{
+        final Long newLength = TrackHelper.getLength(t);
+        return (compare(mbData.getTitle(), TrackHelper.getTitle(t))
+        	&& ((newLength == null || 
+                    (Math.abs(mbData.getLengthInMilliSeconds() - newLength) > 5000))));
 	}
 
 	private static boolean compare (String a, String b)
