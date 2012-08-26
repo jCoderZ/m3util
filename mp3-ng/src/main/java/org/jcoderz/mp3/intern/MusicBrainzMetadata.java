@@ -2,6 +2,8 @@ package org.jcoderz.mp3.intern;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -379,6 +381,45 @@ public class MusicBrainzMetadata
             LOGGER.log(Level.WARNING, "File name detection failed " + ex, ex);
         }
         LOGGER.info("No clue for " + getFile().getName());
+    }
+
+    public Object get(String tag) {
+        LOGGER.info("tag=" + tag);
+    	String name = null;
+    	Method[] methods = this.getClass().getMethods();
+    	for (Method method : methods) {
+    		if (method.getName().startsWith("get") && method.getName().toLowerCase().substring(3).equals(tag.toLowerCase())) {
+    			name = method.getName();
+    		}
+    	}
+        LOGGER.info("name=" + name);
+    	
+    	Object result = null;
+    	if (name != null) {
+    		try {
+        		Method m = this.getClass().getMethod(name);
+                LOGGER.info("m=" + m);
+        		result = m.invoke(this);
+    		}
+    		catch (NoSuchMethodException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+    		} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    	else {
+    		// TODO: throw exception
+    		new Exception().printStackTrace();
+    	}
+    	return result;
     }
 
    public Artwork getCoverImage()
