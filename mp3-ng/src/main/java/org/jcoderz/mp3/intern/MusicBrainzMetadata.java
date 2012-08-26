@@ -38,6 +38,7 @@ import org.jcoderz.commons.util.Assert;
 import org.jcoderz.commons.util.ObjectUtil;
 import org.jcoderz.commons.util.StringUtil;
 import org.jcoderz.mb.MbClient;
+import org.jcoderz.mb.TrackHelper;
 import org.jcoderz.mb.type.ArtistCredit;
 import org.jcoderz.mb.type.Asin;
 import org.jcoderz.mb.type.Medium;
@@ -1065,7 +1066,7 @@ public class MusicBrainzMetadata
         }
         
         final ArtistCredit artistCredit 
-            = track.getRecording().getArtistCredit();
+            = TrackHelper.getArtistCredit(track);
 
         final org.jcoderz.mb.type.Artist albumArtist;
         // TODO: There might be multiple Ids....
@@ -1097,16 +1098,7 @@ public class MusicBrainzMetadata
         changed = setArtist(MbClient.getArtist(artistCredit)) || changed;
         changed = setArtistSortname(MbClient.getArtistSortName(artistCredit)) || changed;
         
-        final String title;
-        if (StringUtil.isNullOrBlank(track.getTitle()))
-        {
-            title = track.getRecording().getTitle();
-        }
-        else
-        {   // the track might have a more unique title...
-            title = track.getTitle();
-        }
-        
+        final String title = TrackHelper.getTitle(track);
         changed = setTitle(title) || changed;
         changed = setFileId(track.getRecording().getId()) || changed;
         

@@ -11,6 +11,7 @@ import org.jcoderz.mb.type.Includes;
 import org.jcoderz.mb.type.Recording;
 import org.jcoderz.mb.type.RecordingList;
 import org.jcoderz.mb.type.Release;
+import org.jcoderz.mb.type.TrackData;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -72,6 +73,17 @@ public class MbClientTest
             System.out.println(recording.getTitle());
         }
         
+    }
+    
+    @Test
+    public void testGetTitle ()
+    {
+    	TrackData trackData 
+    		= mClient.getTrackData(
+    				"58da2396-81a6-4e85-bab9-e623d42840bd", "0ca12a54-b5b1-4029-b4eb-4824eb210845");
+    	assertEquals("Will You Still Love Me Tomorrow", TrackHelper.getTitle(trackData.getTrack()));
+    	assertEquals("Will You Still Love Me Tomorrow", trackData.getTrack().getTitle());
+    	assertEquals("Will You Love Me Tomorrow", trackData.getTrack().getRecording().getTitle());
     }
     
     private static File getBasePath ()
