@@ -1,2 +1,10 @@
-Command-line MP3 utilities.
- 
+
+### Deployment to Maven Central
+https://docs.sonatype.org/display/Repository/Sonatype+OSS+Maven+Repository+Usage+Guide
+
+### Deploy to OSS Sonatype Snapshot Repository
+
+mvn clean deploy 
+
+The deployment does not work in Eclipse because of the following bug:
+https://bugs.eclipse.org/bugs/show_bug.cgi?id=355338

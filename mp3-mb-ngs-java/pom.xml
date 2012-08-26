@@ -5,7 +5,7 @@
     <name>mp3-mb-ngs-java</name>
     <parent>
         <groupId>org.jcoderz.m3dditiez</groupId>
-        <artifactId>mp3</artifactId>
+        <artifactId>m3util</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
     <properties>
