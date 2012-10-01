@@ -229,7 +229,7 @@ out:
         final Long newLength = TrackHelper.getLength(t);
         return (compare(mbData.getTitle(), TrackHelper.getTitle(t))
         	&& ((newLength == null || 
-                    (Math.abs(mbData.getLengthInMilliSeconds() - newLength) > 5000))));
+                    (Math.abs(mbData.getLengthInMilliSeconds() - newLength) < 5000))));
 	}
 
 	private static boolean compare (String a, String b)
@@ -255,6 +255,8 @@ out:
        {
           b = b.substring(0, Math.max(29, len));
        }
+       a = a.trim();
+       b = b.trim();
        final Collator collator = Collator.getInstance(new Locale("en", "US"));
        collator.setStrength(Collator.PRIMARY);
        return collator.compare(a, b) == 0;
