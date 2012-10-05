@@ -70,8 +70,7 @@ public class DatabaseUpdater implements DirTreeListener {
 	 *            the quality tag which determines the sub-folder
 	 */
 	public void refresh(TagQuality quality) {
-		final File root = new File(Environment.getLibraryHome(), "audio/"
-				+ quality.getSubdir() + "/");
+		final File root = new File(Environment.getAudioFolder(), quality.getSubdir());
 		final DirTreeWalker walker = new DirTreeWalker(root, this);
 		try {
 			walker.start();

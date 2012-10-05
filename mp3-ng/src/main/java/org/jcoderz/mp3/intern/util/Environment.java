@@ -63,6 +63,15 @@ public class Environment {
 	}
 
 	/**
+	 * The audio folder.
+	 * 
+	 * @return the audio folder
+	 */
+	public static File getAudioFolder() {
+		return new File(getLibraryHome(), "audio");
+	}
+
+	/**
 	 * The library log folder.
 	 * 
 	 * @return the log folder
