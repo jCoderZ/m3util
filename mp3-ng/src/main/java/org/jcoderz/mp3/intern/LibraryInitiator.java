@@ -90,7 +90,7 @@ public class LibraryInitiator {
                         + " but must be a folder!");
             }
         } else {
-            boolean success = folder.mkdir();
+            boolean success = folder.mkdirs();
             if (!success) {
                 throw new RuntimeException("Could not create folder " + folder);
             }
