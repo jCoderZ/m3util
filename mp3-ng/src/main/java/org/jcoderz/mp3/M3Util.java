@@ -3,6 +3,7 @@ package org.jcoderz.mp3;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import joptsimple.OptionException;
 
@@ -29,6 +30,13 @@ import org.jcoderz.mp3.intern.types.TagQuality;
  */
 public class M3Util {
 
+    static {
+        try {
+            LogManager.getLogManager().readConfiguration(M3Util.class.getResourceAsStream("logging.properties"));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
     private static final Logger logger = Logger.getLogger(M3Util.class.getName());
     private static final List<String> HELP_OPTIONS = Arrays.asList("help", "h");
 
