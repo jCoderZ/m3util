@@ -89,7 +89,9 @@ public class LibraryInitiator {
         createFolder(varFolder, "tmp");
         File cacheFolder = createFolder(varFolder, "cache");
         createFolder(cacheFolder, "images");
-        createFolder(libHome, "incoming");
+        // TODO: where to put the folder incoming???
+        File incFolder = createFolder(varFolder, "incoming");
+        createFolder(incFolder, "audio");
     }
 
     private void downloadJre() {
