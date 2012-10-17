@@ -46,6 +46,7 @@ public class DatabaseUpdater implements DirTreeListener {
         } else {
             du.refresh();
         }
+        du.close();
     }
 
     /**
@@ -60,6 +61,13 @@ public class DatabaseUpdater implements DirTreeListener {
     }
 
     /**
+     * Close the EntityManagerFactory.
+     */
+    public void close() {
+        RepositoryDb.close();
+    }
+
+    /**
      * Refreshes the database.
      *
      * @param quality the quality tag which determines the sub-folder
@@ -67,11 +75,8 @@ public class DatabaseUpdater implements DirTreeListener {
     public void refresh(TagQuality quality) {
         final File root = new File(Environment.getAudioFolder(), quality.getSubdir());
         final DirTreeWalker walker = new DirTreeWalker(root, this);
-        try {
-            walker.start();
-        } finally {
-            RepositoryDb.close();
-        }
+        logger.info("Scanning tree under " + root);
+        walker.start();
     }
 
     /**

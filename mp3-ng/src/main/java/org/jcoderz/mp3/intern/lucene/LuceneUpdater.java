@@ -23,9 +23,7 @@ public class LuceneUpdater implements DirTreeListener {
 
     private static final String CLASSNAME = LuceneUpdater.class.getName();
     private static final Logger logger = Logger.getLogger(CLASSNAME);
-    final File mRepositoryBase;
-    final File mLuceneBase;
-    final LuceneIndex mLucene;
+    private LuceneIndex mLucene;
 
     /**
      * This command line entry point can be called with either one or more than
@@ -46,6 +44,7 @@ public class LuceneUpdater implements DirTreeListener {
         } else {
             du.refresh();
         }
+        du.close();
     }
 
     /**
@@ -56,10 +55,12 @@ public class LuceneUpdater implements DirTreeListener {
      * $base/tools/var/db/licene.
      */
     public LuceneUpdater() {
-        mRepositoryBase = Environment.getLibraryHome();
-        mLuceneBase = Environment.getLuceneFolder();
-        mLuceneBase.mkdirs();
         mLucene = new LuceneIndex();
+        final File luceneFolder = Environment.getLuceneFolder();
+        if (!luceneFolder.exists()) {
+            luceneFolder.mkdirs();
+        }
+        mLucene.open(luceneFolder);
     }
 
     /**
@@ -68,16 +69,18 @@ public class LuceneUpdater implements DirTreeListener {
      * @param quality the quality tag which determines the sub-folder
      */
     public void refresh(TagQuality quality) {
-        final File root = new File(mRepositoryBase, "audio/"
-                + quality.getSubdir() + "/");
+        final File root = new File(Environment.getLibraryHome(), "audio" + File.separatorChar
+                + quality.getSubdir() + File.separatorChar);
         final DirTreeWalker walker = new DirTreeWalker(root, this);
-        mLucene.open(mLuceneBase);
-        try {
-            logger.info("Scanning tree under " + root);
-            walker.start();
-        } finally {
-            mLucene.close();
-        }
+        logger.info("Scanning tree under " + root);
+        walker.start();
+    }
+
+    /**
+     * Close the Lucene index.
+     */
+    public void close() {
+        mLucene.close();
     }
 
     /**

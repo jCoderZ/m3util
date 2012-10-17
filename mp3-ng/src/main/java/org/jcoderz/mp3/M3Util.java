@@ -146,7 +146,7 @@ public class M3Util {
             List<String> root = Arrays.asList("root", "r");
             OptionSpec<File> rootFile = parser.acceptsAll(root).withRequiredArg().ofType(File.class);
             OptionSet options = parser.parse(args);
-            if (options.has("help") || options.has("h") || !options.hasOptions()) {
+            if (options.has("help") || options.has("h")) {
                 usageCreate();
             } else {
                 LibraryInitiator li = new LibraryInitiator();
@@ -165,17 +165,28 @@ public class M3Util {
             List<String> quality = Arrays.asList("quality", "q");
             OptionSpec<TagQuality> tagQuality = parser.acceptsAll(quality).withRequiredArg().ofType(TagQuality.class);
             OptionSet options = parser.parse(args);
-            if (options.has("help") || options.has("h") || !options.hasOptions()) {
+            if (options.has("help") || options.has("h")) {
                 usageIndex();
             } else {
                 LuceneUpdater updateLucene = new LuceneUpdater();
+                try {
+                    if (!options.has(tagQuality)) {
+                        updateLucene.refresh();
+                    } else {
+                        updateLucene.refresh(tagQuality.value(options));
+                    }
+                } finally {
+                    updateLucene.close();
+                }
                 DatabaseUpdater updateDb = new DatabaseUpdater();
-                if (tagQuality == null) {
-                    updateLucene.refresh();
-                    updateDb.refresh();
-                } else {
-                    updateLucene.refresh(tagQuality.value(options));
-                    updateDb.refresh(tagQuality.value(options));
+                try {
+                    if (!options.has(tagQuality)) {
+                        updateDb.refresh();
+                    } else {
+                        updateDb.refresh(tagQuality.value(options));
+                    }
+                } finally {
+                    updateDb.close();
                 }
             }
         } catch (OptionException ex) {
