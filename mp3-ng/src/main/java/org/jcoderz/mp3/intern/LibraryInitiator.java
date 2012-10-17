@@ -1,9 +1,6 @@
 package org.jcoderz.mp3.intern;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,10 +23,6 @@ public class LibraryInitiator {
 
     private static final String CLASSNAME = LibraryInitiator.class.getName();
     private static final Logger logger = Logger.getLogger(CLASSNAME);
-
-    public LibraryInitiator() {
-        // ...
-    }
 
     /**
      * Create a media library folder structure at the M3_LIBRARY_HOME location
@@ -97,7 +90,16 @@ public class LibraryInitiator {
     private void downloadJre() {
         // TODO:
         // download to var/tmp
-        // extract to tools/lib/jre/...
+        // extract tar.gz  to tools/lib/jre/win|lnx|mac...
+    }
+
+    private void populateFolderTree() {
+        // TODO:
+        //   m3util JARs to /tools/lib
+        //   m3util.sh/.bat to tools/bin
+        //   m3server JARs to /tools/lib
+        //   m3server.bat/.sh to /tools/bin
+        // ...
     }
 
     private File createFolder(File base, String name) {
