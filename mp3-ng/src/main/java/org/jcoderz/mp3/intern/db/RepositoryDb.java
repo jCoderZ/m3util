@@ -2,8 +2,6 @@ package org.jcoderz.mp3.intern.db;
 
 import java.io.File;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -24,8 +22,6 @@ public class RepositoryDb {
         p.setProperty("hibernate.connection.password", "");
         p.setProperty("hibernate.hbm2ddl.auto", "create");
 
-
-        Logger.getLogger("org.hibernate").setLevel(Level.FINEST);
         sEntityManagerFactory = Persistence.createEntityManagerFactory("org.jcoderz.m3", p);
     }
 

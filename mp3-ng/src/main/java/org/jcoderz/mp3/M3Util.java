@@ -3,6 +3,7 @@ package org.jcoderz.mp3;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import joptsimple.OptionException;
 
 import joptsimple.OptionParser;
@@ -28,6 +29,7 @@ import org.jcoderz.mp3.intern.types.TagQuality;
  */
 public class M3Util {
 
+    private static final Logger logger = Logger.getLogger(M3Util.class.getName());
     private static final List<String> HELP_OPTIONS = Arrays.asList("help", "h");
 
     private static void usage() {
@@ -99,6 +101,7 @@ public class M3Util {
     }
 
     public static void main(String[] args) {
+        logger.info("M3Util");
         if (args.length == 0) {
             usage();
         } else {
@@ -150,7 +153,6 @@ public class M3Util {
                 usageCreate();
             } else {
                 LibraryInitiator li = new LibraryInitiator();
-                // TODO: parse the home folder or use the environment
                 li.create(rootFile.value(options));
             }
         } catch (OptionException ex) {
