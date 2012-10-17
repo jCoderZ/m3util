@@ -50,7 +50,7 @@ public class M3Util {
 
     private static void usageCreate() {
         StringBuilder sb = new StringBuilder();
-        sb.append("create: Create a new media library folder structure\n");
+        sb.append("create: create a new media library folder structure\n");
         sb.append("usage: ");
         sb.append(M3Util.class.getSimpleName().toLowerCase());
         sb.append("\n create [options] [args]\n");
@@ -60,11 +60,11 @@ public class M3Util {
 
     private static void usageIndex() {
         StringBuilder sb = new StringBuilder();
-        sb.append("index: ...\n");
+        sb.append("index: create a database and lucene index\n");
         sb.append("usage: ");
         sb.append(M3Util.class.getSimpleName().toLowerCase());
         sb.append("\n index [options] [args]\n");
-        sb.append("	 ???\n");
+        sb.append("	 -q|--quality <GOLD|SILVER|BRONZE>\n");
         System.out.println(sb.toString());
     }
 
@@ -159,18 +159,28 @@ public class M3Util {
     }
 
     private static void handleIndex(String[] args) {
-        // TODO: call refresh depending on parameters
-        // OptionParser parser = new OptionParser("h:");
-        // OptionSet options = parser.parse(remaining);
-        LuceneUpdater updateLucene = new LuceneUpdater();
-        updateLucene.refresh(TagQuality.GOLD);
-        updateLucene.refresh(TagQuality.SILVER);
-        updateLucene.refresh(TagQuality.BRONZE);
-
-        DatabaseUpdater updateDb = new DatabaseUpdater();
-        updateDb.refresh(TagQuality.GOLD);
-        updateDb.refresh(TagQuality.SILVER);
-        updateDb.refresh(TagQuality.BRONZE);
+        OptionParser parser = new OptionParser();
+        parser.acceptsAll(HELP_OPTIONS);
+        try {
+            List<String> quality = Arrays.asList("quality", "q");
+            OptionSpec<TagQuality> tagQuality = parser.acceptsAll(quality).withRequiredArg().ofType(TagQuality.class);
+            OptionSet options = parser.parse(args);
+            if (options.has("help") || options.has("h") || !options.hasOptions()) {
+                usageIndex();
+            } else {
+                LuceneUpdater updateLucene = new LuceneUpdater();
+                DatabaseUpdater updateDb = new DatabaseUpdater();
+                if (tagQuality == null) {
+                    updateLucene.refresh();
+                    updateDb.refresh();
+                } else {
+                    updateLucene.refresh(tagQuality.value(options));
+                    updateDb.refresh(tagQuality.value(options));
+                }
+            }
+        } catch (OptionException ex) {
+            usageIndex();
+        }
     }
 
     private static void handleId(String[] args) {
@@ -179,13 +189,13 @@ public class M3Util {
         try {
             OptionSet options = parser.parse(args);
             if (options.has("help") || options.has("h") || !options.hasOptions()) {
-                usageRefresh();
+                usageId();
             } else {
                 IdAdder ia = new IdAdder();
                 ia.fillRefData(new File(args[0]));
             }
         } catch (OptionException ex) {
-            usageRefresh();
+            usageId();
         }
     }
 

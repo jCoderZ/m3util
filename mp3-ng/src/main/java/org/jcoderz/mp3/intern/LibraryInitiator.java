@@ -1,6 +1,9 @@
 package org.jcoderz.mp3.intern;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -11,6 +14,10 @@ import org.jcoderz.mp3.intern.util.Environment;
  * This class creates the media library folder structure and populates the
  * folders with the libraries necessary to run all tools which are part of the
  * library.
+ *
+ * <p>It seems to be possible to download the Oracle JREs directly: <a
+ * href="http://ivan-site.com/2012/05/download-oracle-java-jre-jdk-using-a-script/">
+ * Download Oracle Java JRE & JDK using a script</a><p>
  *
  * @author mrumpf
  *
@@ -33,7 +40,6 @@ public class LibraryInitiator {
         if (libHome == null) {
             libHome = new File(new File(System.getProperty("user.dir")), "m3");
             logger.warning("Using m3 folder in current working directory as library root");
-            // TODO: ask user to create m3 folder at current working dir
         }
 
         if (!libHome.exists()) {
@@ -44,6 +50,7 @@ public class LibraryInitiator {
             }
         } else {
             if (libHome.isFile()) {
+                // TODO: Use own exceptions
                 throw new RuntimeException("M3_LIBRARY_HOME=" + libHome
                         + " is not a directory!");
             }
@@ -68,7 +75,10 @@ public class LibraryInitiator {
         createFolder(toolsFolder, "bin");
         createFolder(toolsFolder, "etc");
         File libFolder = createFolder(toolsFolder, "lib");
-        createFolder(libFolder, "jdk");
+        File jdkFolder = createFolder(libFolder, "jre");
+        createFolder(jdkFolder, "win");
+        createFolder(jdkFolder, "lnx");
+        createFolder(jdkFolder, "mac");
         createFolder(libFolder, "m3util");
         createFolder(libFolder, "m3server");
         File varFolder = createFolder(toolsFolder, "var");
@@ -76,9 +86,16 @@ public class LibraryInitiator {
         createFolder(varLibFolder, "db");
         createFolder(varLibFolder, "lucene");
         createFolder(varFolder, "log");
+        createFolder(varFolder, "tmp");
         File cacheFolder = createFolder(varFolder, "cache");
         createFolder(cacheFolder, "images");
         createFolder(libHome, "incoming");
+    }
+
+    private void downloadJre() {
+        // TODO:
+        // download to var/tmp
+        // extract to tools/lib/jre/...
     }
 
     private File createFolder(File base, String name) {
