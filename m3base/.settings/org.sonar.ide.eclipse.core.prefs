@@ -1,0 +1,8 @@
+#Sat Oct 29 20:12:31 CEST 2011
+analyseLocally=false
+eclipse.preferences.version=1
+projectArtifactId=m3base
+projectBranch=
+projectGroupId=org.jcoderz.m3util
+serverUrl=http\://localhost\:8888/sonar
+version=1

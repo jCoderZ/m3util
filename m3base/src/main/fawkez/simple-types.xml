@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<simpleTypes>
+
+<!-- ===============================================================
+     TYPE-SAFE ENUMERATIONS
+     =============================================================== -->
+   <typeSafeEnumerations>
+   </typeSafeEnumerations>
+
+<!-- ===============================================================
+     RESTRICTED STRINGS
+     =============================================================== -->
+   <restrictedStrings>
+      <restrictedString
+         classname="MbId"
+         package="org.jcoderz.commons.types"
+         min-length="36"
+         max-length="36"
+         regex="[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}">
+       </restrictedString>
+   </restrictedStrings>
+
+<!-- ===============================================================
+     RESTRICTED LONGS
+     =============================================================== -->
+   <restricted-longs>
+   </restricted-longs>
+   
+   
+<!-- ===============================================================
+     VALUE OBJECTS
+     =============================================================== -->
+   <valueObjects>
+      <valueObject classname="UdId"
+                   package="org.jcoderz.m3util.intern.db.types"
+                   serializable="serializable"
+                   final="false" >
+        <description>
+            Database wrapper type to persist a uuid.
+            @javax.persistence.Embeddable
+        </description>
+         <member name="Uuid"
+                 type="UUID">
+         </member>
+         <description>
+            Uuid field.
+            @javax.persistence.Column(
+                name = "UUID", length = 36, nullable = false, columnDefinition = "char(36)")
+         </description>        
+      </valueObject>
+   </valueObjects>
+</simpleTypes>
