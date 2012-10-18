@@ -2,9 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.jcoderz.m3dditiez</groupId>
+	<groupId>org.jcoderz.m3util</groupId>
 	<artifactId>m3util</artifactId>
-	<name>m3util</name>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<description>This is the Maven base project for the m3util modules.</description>
@@ -28,8 +27,8 @@
 	</parent>
 
 	<modules>
-		<module>mp3-mb-ngs-java</module>
-		<module>mp3-ng</module>
+		<module>m3musicbrainz</module>
+		<module>m3base</module>
 	</modules>
 
 	<scm>

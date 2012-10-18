@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>mp3</name>
+	<name>m3util</name>
 	<comment>This is the parent package</comment>
 	<projects>
-		<project>mp3-ng</project>
-		<project>mp3-mb-ngs-java</project>
-		<project>mp3-solr</project>
+		<project>m3base</project>
+		<project>m3musicbrainz</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
