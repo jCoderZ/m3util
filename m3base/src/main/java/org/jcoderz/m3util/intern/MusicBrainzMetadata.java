@@ -108,6 +108,7 @@ public class MusicBrainzMetadata {
     private FrameBodyTXXX mSha1Frame;
     private File mFile;
     private String mBitrateString;
+    private long mBitrate;
     private boolean mGotInfo = false;
     /**
      * If true the song is part of a fully available album.
@@ -159,7 +160,8 @@ public class MusicBrainzMetadata {
     private void getInfo() {
         if (!mGotInfo) {
             mLengthInMilliSeconds = mMediaFile.getAudioHeader().getTrackLength() * 1000;
-            mBitrateString = "UNKNOWN";
+            mBitrate = mMediaFile.getAudioHeader().getBitRateAsNumber();
+            mBitrateString = mMediaFile.getAudioHeader().getBitRate();
             mGotInfo = true;
         }
     }
@@ -1125,6 +1127,11 @@ public class MusicBrainzMetadata {
     public String getBitrateString() {
         getInfo();
         return mBitrateString;
+    }
+
+    public long getBitrate() {
+        getInfo();
+        return mBitrate;
     }
 
     public String getLengthString() {
