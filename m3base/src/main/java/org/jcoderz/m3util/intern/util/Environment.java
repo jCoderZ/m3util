@@ -18,29 +18,8 @@ public class Environment {
     /**
      * The root folder.
      */
-    public static final File M3_LIBRARY_HOME;
+    public static File m3LibraryHome;
     public static final String M3_LIBRARY_HOME_KEY = "M3_LIBRARY_HOME";
-
-    static {
-        String root = System.getProperty(M3_LIBRARY_HOME_KEY);
-        if (root == null) {
-            root = System.getenv(M3_LIBRARY_HOME_KEY);
-        }
-        File rootFolder = null;
-        if (root != null) {
-            rootFolder = new File(root);
-            if (!rootFolder.exists()) {
-                throw new IllegalArgumentException("Folder "
-                        + M3_LIBRARY_HOME_KEY + "=" + rootFolder);
-            }
-        } else {
-            throw new IllegalArgumentException(
-                    "Value for "
-                    + M3_LIBRARY_HOME_KEY
-                    + " was neither set as environment variable nor as system parameter");
-        }
-        M3_LIBRARY_HOME = rootFolder;
-    }
 
     private Environment() {
         // do not instantiate
@@ -51,8 +30,31 @@ public class Environment {
      *
      * @return the root folder
      */
-    public static File getLibraryHome() {
-        return M3_LIBRARY_HOME;
+    public static synchronized File getLibraryHome() {
+        if (m3LibraryHome != null) {
+            String root = System.getProperty(M3_LIBRARY_HOME_KEY);
+            if (root == null) {
+                root = System.getenv(M3_LIBRARY_HOME_KEY);
+            }
+            File rootFolder = null;
+            if (root != null) {
+                rootFolder = new File(root);
+                if (!rootFolder.exists()) {
+                    throw new IllegalArgumentException("Folder "
+                            + M3_LIBRARY_HOME_KEY + "=" + rootFolder);
+                }
+            } else {
+                throw new IllegalArgumentException(
+                        "Value for "
+                        + M3_LIBRARY_HOME_KEY
+                        + " was neither set as environment variable nor as system parameter."
+                        + " Set the system parameter like this: -DM3_LIBRARY_HOME=... "
+                        + " or the environment like this under Windows: set M3_LIBRARY_HOME=... and"
+                        + " like this under Unix: export M3_LIBRARY_HOME=...");
+            }
+            m3LibraryHome = rootFolder;
+        }
+        return m3LibraryHome;
     }
 
     /**
