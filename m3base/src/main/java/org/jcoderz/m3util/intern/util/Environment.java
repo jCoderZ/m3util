@@ -31,7 +31,7 @@ public class Environment {
      * @return the root folder
      */
     public static synchronized File getLibraryHome() {
-        if (m3LibraryHome != null) {
+        if (m3LibraryHome == null) {
             String root = System.getProperty(M3_LIBRARY_HOME_KEY);
             if (root == null) {
                 root = System.getenv(M3_LIBRARY_HOME_KEY);
