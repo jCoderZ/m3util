@@ -1,12 +1,13 @@
 package org.jcoderz.m3util;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
-import joptsimple.OptionException;
 
+import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
@@ -30,9 +31,15 @@ import org.jcoderz.m3util.intern.types.TagQuality;
  */
 public class M3Util {
 
+    private static final String LOGGING_PROPERTIES = "/org/jcoderz/mp3/logging.properties";
+
     static {
         try {
-            LogManager.getLogManager().readConfiguration(M3Util.class.getResourceAsStream("logging.properties"));
+            final InputStream inputStream = M3Util.class.getResourceAsStream(LOGGING_PROPERTIES);
+            if (inputStream == null) {
+                throw new RuntimeException("Cannot find '" + LOGGING_PROPERTIES + "'.");
+            }
+            LogManager.getLogManager().readConfiguration(inputStream);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
