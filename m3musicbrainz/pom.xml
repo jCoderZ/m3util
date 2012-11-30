@@ -10,53 +10,12 @@
     </parent>
     <properties>
         <FAWKEZ_VERSION>2.0.0</FAWKEZ_VERSION>
-        <SLF4J_VERSION>1.6.6</SLF4J_VERSION>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-            <version>2.0</version>
-        </dependency>
-        <dependency>
-            <groupId>xalan</groupId>
-            <artifactId>xalan</artifactId>
-            <version>2.7.1</version>
-        </dependency>
-        <dependency>
-            <groupId>xalan</groupId>
-            <artifactId>serializer</artifactId>
-            <version>2.7.1</version>
-        </dependency>
-        <dependency>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-            <version>2.9.1</version>
-        </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.1.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${SLF4J_VERSION}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-            <version>${SLF4J_VERSION}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-            <version>${SLF4J_VERSION}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.jcoderz.fawkez</groupId>
-            <artifactId>fawkez-codegen</artifactId>
-            <version>${FAWKEZ_VERSION}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -136,6 +95,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.7</version>
                 <executions>
                     <execution>
                         <id>source-main</id>
@@ -154,6 +114,7 @@
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>0.8.2</version>
                 <executions>
                     <execution>
                         <goals>
