@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>m3musicbrainz</artifactId>
     <name>m3musicbrainz</name>
@@ -10,6 +10,7 @@
     </parent>
     <properties>
         <FAWKEZ_VERSION>2.0.0</FAWKEZ_VERSION>
+        <SLF4J_VERSION>1.6.6</SLF4J_VERSION>
     </properties>
     <dependencies>
         <dependency>
@@ -40,17 +41,17 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.6.1</version>
+            <version>${SLF4J_VERSION}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
-            <version>1.6.1</version>
+            <version>${SLF4J_VERSION}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
-            <version>1.6.1</version>
+            <version>${SLF4J_VERSION}</version>
         </dependency>
         <dependency>
             <groupId>org.jcoderz.fawkez</groupId>
@@ -170,8 +171,8 @@
         </plugins>
         <pluginManagement>
             <plugins>
-                <!--This plugin's configuration is used to store Eclipse 
-                    m2e settings only. It has no influence on the Maven build itself. -->
+                <!--This plugin's configuration is used to store Eclipse
+                m2e settings only. It has no influence on the Maven build itself. -->
                 <plugin>
                     <groupId>org.eclipse.m2e</groupId>
                     <artifactId>lifecycle-mapping</artifactId>
