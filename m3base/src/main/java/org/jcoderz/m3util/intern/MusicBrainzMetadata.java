@@ -116,9 +116,13 @@ public class MusicBrainzMetadata {
     private boolean mAlbumComplete = true;
 
     public MusicBrainzMetadata(File file) {
+        this(file, false);
+    }
+
+    public MusicBrainzMetadata(File file, boolean readOnly) {
         mFile = file;
         try {
-            mMediaFile = new MP3File(file);
+            mMediaFile = new MP3File(file, MP3File.LOAD_ALL, true);
         } catch (IOException e) {
             throw new RuntimeException("TODO " + e, e);
         } catch (TagException e) {
