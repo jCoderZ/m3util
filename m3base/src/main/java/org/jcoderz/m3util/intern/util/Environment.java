@@ -15,10 +15,6 @@ import java.io.File;
  */
 public class Environment {
 
-    /**
-     * The root folder.
-     */
-    public static File m3LibraryHome;
     public static final String M3_LIBRARY_HOME_KEY = "M3_LIBRARY_HOME";
 
     private Environment() {
@@ -31,30 +27,7 @@ public class Environment {
      * @return the root folder
      */
     public static synchronized File getLibraryHome() {
-        if (m3LibraryHome == null) {
-            String root = System.getProperty(M3_LIBRARY_HOME_KEY);
-            if (root == null) {
-                root = System.getenv(M3_LIBRARY_HOME_KEY);
-            }
-            File rootFolder = null;
-            if (root != null) {
-                rootFolder = new File(root);
-                if (!rootFolder.exists()) {
-                    throw new IllegalArgumentException("Folder "
-                            + M3_LIBRARY_HOME_KEY + "=" + rootFolder);
-                }
-            } else {
-                throw new IllegalArgumentException(
-                        "Value for "
-                        + M3_LIBRARY_HOME_KEY
-                        + " was neither set as environment variable nor as system parameter."
-                        + " Set the system parameter like this: -DM3_LIBRARY_HOME=... "
-                        + " or the environment like this under Windows: set M3_LIBRARY_HOME=... and"
-                        + " like this under Unix: export M3_LIBRARY_HOME=...");
-            }
-            m3LibraryHome = rootFolder.getAbsoluteFile();
-        }
-        return m3LibraryHome;
+        return LibraryHomeHolder.getLibraryHome();
     }
 
     /**
@@ -100,5 +73,64 @@ public class Environment {
      */
     public static File getDbFolder() {
         return new File(getLibraryHome(), "tools/var/lib/db");
+    }
+
+    /**
+     * Lazy init result holder.
+     * @author Andreas Mandel
+     *
+     */
+    private static class LibraryHomeHolder {
+    	private static File M3_LIBRARY_HOME = null;
+    	private static RuntimeException M3_EXCEPTION = null;
+    	static {
+            try {
+                String root = System.getProperty(M3_LIBRARY_HOME_KEY);
+                if (root == null) {
+                    root = System.getenv(M3_LIBRARY_HOME_KEY);
+                }
+                File rootFolder = null;
+                if (root != null) {
+                    rootFolder = new File(root);
+                    if (!rootFolder.exists()) {
+                        throw new IllegalArgumentException("Folder "
+                                + M3_LIBRARY_HOME_KEY + "=" + rootFolder);
+                    }
+                    if (!rootFolder.isDirectory()) {
+                        throw new IllegalArgumentException("Folder "
+                                + M3_LIBRARY_HOME_KEY + "=" + rootFolder
+                                + " must be a directory.");
+                    }
+                    if (!new File(rootFolder, "audio").isDirectory()) {
+                        throw new IllegalArgumentException("Folder "
+                                + M3_LIBRARY_HOME_KEY + "=" + rootFolder
+                                + " requires a subdirectory 'audio'.");
+                    }
+                    if (!new File(rootFolder, "tools").isDirectory()) {
+                        throw new IllegalArgumentException("Folder "
+                                + M3_LIBRARY_HOME_KEY + "=" + rootFolder
+                                + " requires a subdirectory 'tools'.");
+                    }
+                } else {
+                    throw new IllegalArgumentException(
+                            "Value for "
+                            + M3_LIBRARY_HOME_KEY
+                            + " was neither set as environment variable nor as system parameter."
+                            + " Set the system parameter like this: -DM3_LIBRARY_HOME=... "
+                            + " or the environment like this under Windows: set M3_LIBRARY_HOME=... and"
+                            + " like this under Unix: export M3_LIBRARY_HOME=...");
+                }
+                M3_LIBRARY_HOME = rootFolder.getAbsoluteFile();
+            } catch (RuntimeException ex) {
+                    M3_EXCEPTION = ex;
+            }
+       }
+
+    	public static File getLibraryHome() {
+    		if (M3_LIBRARY_HOME == null) {
+    			throw M3_EXCEPTION;
+    		}
+    		return M3_LIBRARY_HOME;
+    	}
     }
 }
