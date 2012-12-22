@@ -116,7 +116,8 @@ public final class MbUtil {
             track = findTrackDataByRecording(mbClient, mbData, theAlbum);
         }
         if (track.getMedium() == null && theAlbum != null) {
-            Assert.fail("Cold not find track " + currentTrackId + " in Release " + theAlbum.getId());
+            Assert.fail("Cold not find track " + currentTrackId + " in Release "
+                    + theAlbum.getId() + " for " + mbData.getFile());
         }
 
         return track;
@@ -166,9 +167,11 @@ public final class MbUtil {
 
         final Release theAlbum = album;
         final String fileId = mbData.getFileId();
-        out:
+
+        // test for a id match:
         for (Medium m : theAlbum.getMediumList().getMedium()) {
-            final int trackPos = mbData.getTrackNumber() - m.getTrackList().getOffset().intValue();
+            final int trackPos
+                    = mbData.getTrackNumber() - m.getTrackList().getOffset().intValue();
             if (trackPos > m.getTrackList().getDefTrack().size()) {
                 continue;
             }
@@ -176,53 +179,14 @@ public final class MbUtil {
             if (fileId.equals(t.getRecording().getId())) {   // id match wins always!
                 medium = m;
                 track = t;
-                break out;
-            } else if (compare(mbData, t)) {
-                if (medium == null) {
-                    medium = m;
-                    track = t;
-                } else {
-                    LOGGER.warning("Ambiguous recording can not be matched - will be ignored"
-                            + t.getRecording().getId() + " vs. " + track.getRecording().getId()
-                            + " in album " + theAlbum.getId());
-                    medium = null;
-                    track = null;
-                    break out;
-                }
+                break;
             }
+        }
+        if (medium == null && track == null) {
+            LOGGER.info("Did not find track id in medium for '"
+                    + mbData.getFile() + "' expect a id change.");
         }
         return new TrackData(theAlbum, medium, track);
     }
 
-    private static boolean compare(MusicBrainzMetadata mbData, Track t) {
-        final Long newLength = TrackHelper.getLength(t);
-        return (compare(mbData.getTitle(), TrackHelper.getTitle(t))
-                && ((newLength == null
-                || (Math.abs(mbData.getLengthInMilliSeconds() - newLength) < 5000))));
-    }
-
-    private static boolean compare(String a, String b) {
-        if (a == null) {
-            a = "";
-        }
-        if (b == null) {
-            b = "";
-        }
-        a = a.replaceAll("\\(.*\\)", "");
-        b = b.replaceAll("\\(.*\\)", "");
-        a = a.replaceAll("[^A-Za-z0-9]", "");
-        b = b.replaceAll("[^A-Za-z0-9]", "");
-        final int len = Math.min(a.length(), b.length());
-        if (a.length() > 29) {
-            a = a.substring(0, Math.max(29, len));
-        }
-        if (b.length() > 29) {
-            b = b.substring(0, Math.max(29, len));
-        }
-        a = a.trim();
-        b = b.trim();
-        final Collator collator = Collator.getInstance(new Locale("en", "US"));
-        collator.setStrength(Collator.PRIMARY);
-        return collator.compare(a, b) == 0;
-    }
 }

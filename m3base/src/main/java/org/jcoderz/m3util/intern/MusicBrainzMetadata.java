@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,6 +51,7 @@ import org.jcoderz.m3util.intern.CoverArt.ImageData;
 import org.jcoderz.m3util.intern.util.Id3Util;
 import org.jcoderz.m3util.intern.util.MbUtil;
 import org.jcoderz.m3util.intern.util.Mp3Util;
+import org.jcoderz.mb.MediumHelper;
 
 // TODO: Id3Lib fix MUSICBRAINZ_TRACK_ID handling
 public class MusicBrainzMetadata {
@@ -99,7 +101,7 @@ public class MusicBrainzMetadata {
     // if not set the default is "MusicBrainz"
     public static final String FOO_TAG_AUTHORITY_DESC = "Foo TagAuthority";
     private static final String MB_UFI_OWNER = "http://musicbrainz.org";
-    public static final Set<String> UNKOWN_FRAMES = new HashSet<String>();
+    public static final Set<String> UNKOWN_FRAMES = new HashSet<>();
     private long mLengthInMilliSeconds = -2;
     private final MP3File mMediaFile;
     private FrameBodyTXXX mTagAuthorityFrame;
@@ -119,17 +121,15 @@ public class MusicBrainzMetadata {
         this(file, false);
     }
 
+    public MusicBrainzMetadata(Path path) {
+        this(path.toFile(), false);
+    }
+
     public MusicBrainzMetadata(File file, boolean readOnly) {
         mFile = file;
         try {
             mMediaFile = new MP3File(file, MP3File.LOAD_ALL, true);
-        } catch (IOException e) {
-            throw new RuntimeException("TODO " + e, e);
-        } catch (TagException e) {
-            throw new RuntimeException("TODO " + e, e);
-        } catch (ReadOnlyFileException e) {
-            throw new RuntimeException("TODO " + e, e);
-        } catch (InvalidAudioFrameException e) {
+        } catch (IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException e) {
             throw new RuntimeException("TODO " + e, e);
         }
         scanMbFrames();
@@ -602,6 +602,7 @@ public class MusicBrainzMetadata {
         return result.isModified();
     }
 
+    /** @return the musicbrainz track id */
     public String getFileId() {
         String trackId = null;
         if (StringUtil.isEmptyOrNull(getId3V2Tag().getFirst(FieldKey.MUSICBRAINZ_TRACK_ID))) {
@@ -773,6 +774,9 @@ public class MusicBrainzMetadata {
      */
     public boolean setAlbumComplete(boolean albumComplete) {
         boolean modified = (isAlbumComplete() != albumComplete);
+        if (albumComplete && isSingle()) {
+            modified = setSingle(false) | modified;
+        }
         mAlbumComplete = albumComplete;
         return modified;
     }
@@ -996,18 +1000,7 @@ public class MusicBrainzMetadata {
     }
 
     private String buildAlbumTitle(TrackData data) {
-        final StringBuilder albumTitle = new StringBuilder();
-        albumTitle.append(data.getRelease().getTitle());
-        if (data.getRelease().getMediumList().getCount().intValue() > 1) {
-            albumTitle.append(" (disc ");
-            albumTitle.append(data.getMedium().getPosition());
-            if (!StringUtil.isNullOrBlank(data.getMedium().getTitle())) {
-                albumTitle.append(": ");
-                albumTitle.append(data.getMedium().getTitle());
-            }
-            albumTitle.append(')');
-        }
-        return albumTitle.toString();
+        return MediumHelper.buildAlbumTitle(data.getRelease(), data.getMedium());
     }
 
     /**
@@ -1166,9 +1159,10 @@ public class MusicBrainzMetadata {
     }
 
     public void fetchCoverImage(CoverArt ca) {
-        if (!StringUtil.isNullOrEmpty(getAsin())) {
+        String id = getAsin();
+        if (!StringUtil.isNullOrEmpty(id)) {
             if (getCoverImage() == null) {
-                final ImageData image = ca.getImage(getAsin());
+                final ImageData image = ca.getImage(id);
                 if (image != null) {
                     Artwork aw = new Artwork();
                     aw.setBinaryData(image.getImage());
@@ -1178,6 +1172,18 @@ public class MusicBrainzMetadata {
                 }
             }
         }
+        if (getCoverImage() == null) {
+            id = getAlbumId();
+            final ImageData image = ca.getImage(id);
+            if (image != null) {
+                Artwork aw = new Artwork();
+                aw.setBinaryData(image.getImage());
+                aw.setMimeType(image.getMimeType());
+                setCoverImage(aw);
+                logger.info("U -> Added IMAGE by mb-id " + this);
+            }
+        }
+
     }
 
     private String getAsin(TrackData data) { // TODO -> Relationships!

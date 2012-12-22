@@ -19,6 +19,8 @@ import org.jcoderz.mb.type.Release;
 import org.jcoderz.mb.type.Type;
 import org.jcoderz.m3util.intern.util.FileUtil;
 import org.jcoderz.m3util.intern.util.MbUtil;
+import org.jcoderz.mb.MediumHelper;
+import org.jcoderz.mb.type.TrackData;
 
 /**
  * Class is capable to determine the file location based on the available
@@ -66,6 +68,29 @@ public final class FileLocation {
 
     public FileLocation(MusicBrainzMetadata md) {
         set(md);
+    }
+
+    public FileLocation (TrackData track)
+    {
+        mIsUpToDate = false;
+        setComplete(true);
+        setSingle(false);
+        mIsVaStyle = MbClient.containsVa(track.getRelease().getArtistCredit());
+        mIsStory = MbUtil.isStory(track.getRelease().getReleaseGroup());
+        mIsSoundtrack = MbUtil.isSoundtrack(track.getRelease().getReleaseGroup());
+        mTrackNumber = track.getTrack().getPosition().intValue();
+        mAlbum = MediumHelper.buildAlbumTitle(track.getRelease(), track.getMedium());
+        mAlbumId = track.getRelease().getId();
+        mTitle = TrackHelper.getTitle(track.getTrack());
+        mTrackNumber = track.getTrack().getPosition().intValue();
+        final ArtistCredit trackArtistCredit
+            = TrackHelper.getArtistCredit(track.getRelease(), track.getTrack());
+        mArtist = MbClient.getArtist(trackArtistCredit);
+        mArtistSortName = MbClient.getArtistSortName(trackArtistCredit);
+        mAlbumArtist = MbClient.getArtist(track.getRelease().getArtistCredit());
+        mAlbumArtistSortName = MbClient.getArtistSortName(track.getRelease().getArtistCredit());
+        mAlbumId = track.getRelease().getId();
+        mTitleId = track.getTrack().getRecording().getId();
     }
 
     public FileLocation(Release rel, Recording recording) {

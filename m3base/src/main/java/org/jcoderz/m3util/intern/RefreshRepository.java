@@ -67,7 +67,8 @@ public final class RefreshRepository {
      */
     public static void main(String[] args)
             throws IOException {
-        //final String mbServerHostname = "http://192.168.56.101:3000";
+//        args = new String[] { "z:/" };
+//        System.setProperty("M3_LIBRARY_HOME", "Z:/");
         final String mbServerHostname = "http://mb-box:5000";
         // final String mbServerHostname = "file:///c:/tmp/mb/";
 
@@ -80,8 +81,8 @@ public final class RefreshRepository {
         final RefreshRepository checker = new RefreshRepository(
                 false /*dryRun*/,
                 //                new File(args[0]),
-                //               new File(args[0] + "/mp3"),
-                new File(args[0] + "/upload/cleaned"),
+                new File(args[0] + "/mp3"),
+                //new File(args[0] + "/upload/cleaned"),
                 new File(args[0]),
                 mbServerHostname);
 
@@ -107,12 +108,16 @@ public final class RefreshRepository {
      * repos.
      * @param repositoryPath the root path of the clean repository.
      * @param mbServerHostname the name of the musicbrainz server to work with.
-     * You should use a local mirror because many requests will be sent to this
+     * You must use a local mirror because many requests will be sent to this
      * server.
      */
     public RefreshRepository(boolean dryRun, File dir, File repositoryPath, String mbServerHostname) {
+        this(dryRun, dir, repositoryPath, new MbClient(mbServerHostname));
+    }
+
+    public RefreshRepository(boolean dryRun, File dir, File repositoryPath, MbClient mbClient) {
         mDryRun = dryRun;
-        mMusicBrainz = new MbClient(mbServerHostname);
+        mMusicBrainz = mbClient;
         // mMusicBrainz.setRecordDir(new File("c:/tmp/mb/"));
         mRepositoryBasePath = repositoryPath;
         mPathOffset = mRepositoryBasePath.getAbsolutePath().length();
@@ -156,9 +161,9 @@ public final class RefreshRepository {
                     while (!mFiles.isEmpty()) {
                         final MusicBrainzMetadata song = mFiles.remove(0);
                         final String currentAlbum = song.getAlbumId();
-                        final List<MusicBrainzMetadata> songs = new ArrayList<MusicBrainzMetadata>();
+                        final List<MusicBrainzMetadata> songs = new ArrayList<>();
                         songs.add(song);
-                        Iterator<MusicBrainzMetadata> i = mFiles.iterator();
+                        final Iterator<MusicBrainzMetadata> i = mFiles.iterator();
                         while (i.hasNext()) {
                             final MusicBrainzMetadata albumSong = i.next();
                             if (currentAlbum.equals(albumSong.getAlbumId())) {
@@ -170,7 +175,7 @@ public final class RefreshRepository {
                         checkPartialAlbum(songs);
                     }
                 } else {
-                    if (mDirLevel <= 1) {
+                    if (mDirLevel <= 2) {
                         logger.info("DONE: " + dir.getName());
                     }
                 }
@@ -219,11 +224,12 @@ public final class RefreshRepository {
                 mAlbumFailure = false;
                 mAlbumModified = false;
                 mCurrentRelease = null;
+                mCurrentMedium = null;
             }
         });
     }
 
-    private void start() {
+    public void start() {
         mDirTreeWalker.start();
     }
 
@@ -244,17 +250,21 @@ public final class RefreshRepository {
             for (MusicBrainzMetadata song : songs) {
                 song.setAlbumComplete(complete);
                 song.setSingle(single);
-                final TrackData trackData = MbUtil.getTrackDataWithIdUpdate(mMusicBrainz, song, release);
-                song.update(trackData);
-                // now update file location!
+                // data is already up to date - just get datacapsule
+                // final TrackData trackData = MbUtil.getTrackDataWithIdUpdate(mMusicBrainz, song, release);
+                final TrackData trackData = MbUtil.findTrackData(mMusicBrainz, release, song);
+                if (song.update(trackData)) {
+                    throw new RuntimeException(
+                            "Assertion failed should not have file updates on album level for " + song + ".");
+                }
                 final File newFile = determinRepositoryPosition(songs, song);
+                // TODO - merge partial albums!!
 
                 if (!mDryRun) {
-                    song.fetchCoverImage(mCoverArt);
                     song.sync(); // write id3 tag info
                 }
                 if (newFile != null) {
-                    moveToFile(newFile, song);
+                    move(song, newFile);
                 }
             }
         } catch (Exception ex) {
@@ -264,6 +274,7 @@ public final class RefreshRepository {
         }
     }
 
+    /** Pass1 method - checking on file level only. */
     private MusicBrainzMetadata checkFile(File file) {
         MusicBrainzMetadata mbData = null;
         if (!mAlbumFailure
@@ -289,7 +300,7 @@ public final class RefreshRepository {
                         || mbData.getTrackNumber() == -1) {
                     if (mCurrentRelease != null) {
                         throw new Exception(
-                                "Single tagged file found in a album dir!");
+                                "Single tagged file " + file + " found in a album dir!");
                     }
                     refreshSingle(mbData);
                 } else {
@@ -297,19 +308,19 @@ public final class RefreshRepository {
                         mCurrentRelease = mMusicBrainz.getRelease(mbData.getAlbumId());
                         // TODO: catch not found...
                     }
+                    // TODO: Id update needed?
+                    if (!mCurrentRelease.getId().equals(mbData.getAlbumId())) {
+                        throw new Exception(
+                                "Different album ids in single dir!" + mCurrentRelease.getId() + " != " + mbData.getAlbumId());
+                    }
+
                     final TrackData track = MbUtil.getTrackDataWithIdUpdate(mMusicBrainz, mbData, mCurrentRelease);
                     mCurrentMedium = track.getMedium();
+
                     final String oldData = String.valueOf(mbData);
                     // now check for updates + set data...
                     boolean trackModified = mbData.update(track);
-                    if (mbData.getCoverImage() == null) {
-                        mbData.fetchCoverImage(mCoverArt);
-                        trackModified |= (mbData.getCoverImage() != null);
-                    }
-
-                    if (!mCurrentRelease.getId().equals(mbData.getAlbumId())) {
-                        throw new Exception("Different album ids in single dir!");
-                    }
+                    trackModified = updateCoverImage(mbData) | trackModified;
 
                     if (!trackModified) {
                         // check for filename change...
@@ -317,17 +328,9 @@ public final class RefreshRepository {
                         final boolean nameModified = !mbData.getFile().getName().equals(fl.getFilename());
                         trackModified = nameModified || trackModified;
                     }
-
-                    mAlbumModified = trackModified || mAlbumModified;
+                    mAlbumModified |= trackModified;
                     if (trackModified) {
-                        if (oldData.equals(String.valueOf(mbData))) {
-                            logger.info("!" + oldData
-                                    + "@" + mbData.getFile().getAbsolutePath());
-                        } else {
-                            logger.info("<" + oldData);
-                            logger.info(">" + mbData
-                                    + "@" + mbData.getFile().getAbsolutePath());
-                        }
+                        logFileChanges(oldData, mbData);
                     }
                 }
             } catch (Exception e) {
@@ -341,6 +344,7 @@ public final class RefreshRepository {
         return mbData;
     }
 
+    /** Pass1 method - checking on file level only. */
     private void refreshSingle(MusicBrainzMetadata mbData) {
         try {  // error within one single should not stop checking the
             // other singles.
@@ -351,58 +355,20 @@ public final class RefreshRepository {
                 throw new Exception(
                         "track " + mbData.getFileId() + " not found.");
             }
-
-            // use 1st release in list of the one that matches
-            // with earliest release date && smallest id...
-            Release release = track.getReleaseList().getRelease().get(0);
-            int date = 9999;
-            Iterator<Release> i = track.getReleaseList().getRelease().iterator();
-            boolean found = false;
-            while (i.hasNext()) {
-                final Release rel = i.next();
-                if (rel.getId().equals(mbData.getAlbumId())) {
-                    if (date > MbClient.getReleaseYear(rel)) {
-                        release = rel;
-                        found = true;
-                    } else if (date == MbClient.getReleaseYear(rel)
-                            && release.getId().compareTo(rel.getId()) > 0) {
-                        release = rel;
-                        found = true;
-                    }
-                }
-            }
-            if (!found) {
-                i = track.getReleaseList().getRelease().iterator();
-                while (i.hasNext()) {
-                    final Release rel = i.next();
-                    if (date > MbClient.getReleaseYear(rel)) {
-                        release = rel;
-                    } else if (date == MbClient.getReleaseYear(rel)
-                            && release.getId().compareTo(rel.getId()) > 0) {
-                        release = rel;
-                    }
-                }
-            }
+            final Release release = getEarliestRelease(track, mbData);
 
             /// TODO: Relationships???
             final TrackData data = MbUtil.getTrackDataWithIdUpdate(
                     mMusicBrainz, mbData, mMusicBrainz.getRelease(release.getId()));
             final String oldData = String.valueOf(mbData);
             // now check for updates + set data...
-            final boolean trackModified = mbData.update(data);
+            boolean trackModified = mbData.update(data);
+            trackModified = updateCoverImage(mbData) | trackModified;
             if (trackModified) {
-                if (!mDryRun) {
-                    mbData.fetchCoverImage(mCoverArt);
+                if (!mDryRun && trackModified) {
                     mbData.sync();
                 }
-                if (oldData.equals(String.valueOf(mbData))) {
-                    logger.info("!" + oldData
-                            + "@" + mbData.getFile().getAbsolutePath());
-                } else {
-                    logger.info("<" + oldData);
-                    logger.info(">" + mbData
-                            + "@" + mbData.getFile().getAbsolutePath());
-                }
+                logFileChanges(oldData, mbData);
             }
             // Singles are moved with the dir! (TODO: check simple renames)
         } catch (Exception ex) {
@@ -426,7 +392,7 @@ public final class RefreshRepository {
             }
 
             // Check the album...
-            final String albumId = files.get(0).getAlbumId();
+            final String albumId = mCurrentRelease.getId();
             if (files.size()
                     != mCurrentMedium.getTrackList().getCount().intValue()) {
                 final boolean single = files.size() * 2 < mCurrentMedium.getTrackList().getCount().intValue();
@@ -567,8 +533,7 @@ public final class RefreshRepository {
             }
         } else if (mb.isSingle()) {
             refineSinglePos(mb, filePos);
-        } else // album
-        {
+        } else {
             refineAlbumPos(songs, filePos);
         }
         if (filePos != null && mb.getFile().getAbsolutePath().equals(
@@ -576,16 +541,9 @@ public final class RefreshRepository {
             filePos = null;
         }
         final File result = (filePos == null ? null : filePos.getFile());
-//      if (result != null && result.toString().contains("Various Artists"))
-//      {
-//          Assert.fail(
-//          "Path must not contain Various Artists" + result);
-//      }
+
         logger.exiting(CLASSNAME,
-                "determinRepositoryPosition(MusicBrainzMetadata)", result);
-
-
-
+                "determinRepositoryPosition(List<MusicBrainzMetadata>, MusicBrainzMetadata)", result);
         return result;
     }
 
@@ -611,6 +569,12 @@ public final class RefreshRepository {
                         + filePos.getDir() + "'.");
                 // just use it....
             } else {
+                if (mb.getAlbumId().equals(existing.get(0).getAlbumId())
+                        && !filePos.getFile().exists()) {
+                    // directory contains same album, but selected
+                    // song is missing....
+                    // use this target
+                } else
                 // Need to compare content of existing and current album
                 // To detect similar albums.
                 if (isRedundantAlbum(album, existing)) {
@@ -638,7 +602,7 @@ public final class RefreshRepository {
         filePos.setBaseDir(mRepositoryDupePath);
         filePos.getFileLocation().setDupe();
         int loop = 0;
-        while (filePos.getFile().exists()
+        while (filePos.getDir().exists()
                 && !filePos.getFile().equals(mb.getFile())) { // duplicate dupe.....
             filePos.setPathAdd("-" + loop++ + "-");
         }
@@ -831,7 +795,7 @@ public final class RefreshRepository {
         Arrays.sort(files);
         for (File file : files) {
             if (file.getName().toLowerCase().endsWith(".mp3")) {
-                result.add(new MusicBrainzMetadata(file));
+                result.add(new MusicBrainzMetadata(file, true));
             }
         }
         return result;
@@ -869,6 +833,79 @@ public final class RefreshRepository {
         Collections.sort(albumPos);
         logger.exiting(CLASSNAME, "getExistingAlbumPos(MusicBrainzMetadata)", albumPos);
         return albumPos;
+    }
+
+    private void logFileChanges(final String oldData, MusicBrainzMetadata mbData)
+    {
+        if (oldData.equals(String.valueOf(mbData))) {
+            logger.info("!" + oldData
+                    + "@" + mbData.getFile().getAbsolutePath());
+        } else {
+            logger.info("<" + oldData + "\n>" + mbData
+                    + "@" + mbData.getFile().getAbsolutePath());
+        }
+    }
+
+    private boolean updateCoverImage(MusicBrainzMetadata mbData)
+    {
+        boolean trackModified = false;
+        if (mbData.getCoverImage() == null) {
+            mbData.fetchCoverImage(mCoverArt);
+            trackModified |= (mbData.getCoverImage() != null);
+        }
+        return trackModified;
+    }
+
+    private Release getEarliestRelease(final Recording track, MusicBrainzMetadata mbData)
+    {
+        // use 1st release in list of the one that matches
+        // with earliest release date && smallest id...
+        Release release = track.getReleaseList().getRelease().get(0);
+        int date = 9999;
+        Iterator<Release> i = track.getReleaseList().getRelease().iterator();
+        boolean found = false;
+        while (i.hasNext()) {
+            final Release rel = i.next();
+            if (rel.getId().equals(mbData.getAlbumId())) {
+                if (date > MbClient.getReleaseYear(rel)) {
+                    release = rel;
+                    found = true;
+                } else if (date == MbClient.getReleaseYear(rel)
+                        && release.getId().compareTo(rel.getId()) > 0) {
+                    release = rel;
+                    found = true;
+                }
+            }
+        }
+        if (!found) {
+            i = track.getReleaseList().getRelease().iterator();
+            while (i.hasNext()) {
+                final Release rel = i.next();
+                if (date > MbClient.getReleaseYear(rel)) {
+                    release = rel;
+                } else if (date == MbClient.getReleaseYear(rel)
+                        && release.getId().compareTo(rel.getId()) > 0) {
+                    release = rel;
+                }
+            }
+        }
+        return release;
+    }
+
+    private void move(MusicBrainzMetadata src, File target)
+            throws Exception
+    {
+        final String move = src.getFile().getAbsolutePath() + "' -> '"
+                + target.getAbsolutePath() + "'.";
+        final File targetDir = target.getParentFile();
+        if (mDryRun) {
+            logger.info("Would move: " + move);
+        } else if (!FileUtil.moveFile(
+                src.getFile(), targetDir, target.getName())) {
+            throw new Exception("Failed to movr file within " + move);
+        } else {
+            logger.info("moved: " + move);
+        }
     }
 
     static class FilePos {
