@@ -14,6 +14,7 @@ import joptsimple.OptionSpec;
 
 import org.jcoderz.m3util.intern.IdAdder;
 import org.jcoderz.m3util.intern.LibraryInitiator;
+import org.jcoderz.m3util.intern.Sha1DupeChecker;
 import org.jcoderz.m3util.intern.db.DatabaseUpdater;
 import org.jcoderz.m3util.intern.lucene.LuceneUpdater;
 import org.jcoderz.m3util.intern.types.TagQuality;
@@ -61,27 +62,34 @@ public class M3Util {
         sb.append("        index\n");
         sb.append("        id\n");
         sb.append("        refresh\n");
+        sb.append("        dupecheck\n");
         sb.append("        rename\n");
         System.out.println(sb.toString());
     }
 
     private static void usageCreate() {
         StringBuilder sb = new StringBuilder();
-        sb.append("create: create a new media library folder structure\n");
+        sb.append("create: Creates a new media library folder structure.\n");
+        sb.append("        If the root option is not specified, the library\n");
+        sb.append("        will be created in the current working directory.\n");
         sb.append("usage: ");
         sb.append(M3Util.class.getSimpleName().toLowerCase());
-        sb.append("\n create [options] [args]\n");
+        sb.append("\n create [options]\n");
         sb.append("	 -r|--root <ROOT_FOLDER>\n");
         System.out.println(sb.toString());
     }
 
     private static void usageIndex() {
         StringBuilder sb = new StringBuilder();
-        sb.append("index: create a database and lucene index\n");
+        sb.append("index: Creates the database and the lucene index.\n");
+        sb.append("       If the quality option is not specified, the index\n");
+        sb.append("       will be created for all three quality levels.\n");
         sb.append("usage: ");
         sb.append(M3Util.class.getSimpleName().toLowerCase());
-        sb.append("\n index [options] [args]\n");
-        sb.append("	 -q|--quality <GOLD|SILVER|BRONZE>\n");
+        sb.append("\n index [options]\n");
+        sb.append("	 -q|--quality <GOLD|SILVER|BRONZE>  --  the tag quality to index\n");
+        sb.append("	 -l|--lucene  --  create Lucene index only\n");
+        sb.append("	 -d|--database  --  create database index only\n");
         System.out.println(sb.toString());
     }
 
@@ -91,7 +99,7 @@ public class M3Util {
         sb.append("usage: ");
         sb.append(M3Util.class.getSimpleName().toLowerCase());
         sb.append("\n id [options] [args]\n");
-        sb.append("	 ???\n");
+        sb.append("	 TODO\n");
         System.out.println(sb.toString());
     }
 
@@ -101,7 +109,22 @@ public class M3Util {
         sb.append("usage: ");
         sb.append(M3Util.class.getSimpleName().toLowerCase());
         sb.append("\n refresh [options] [args]\n");
-        sb.append("	 ???\n");
+        sb.append("	 TODO\n");
+        System.out.println(sb.toString());
+    }
+
+    private static void usageDupeCheck() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("dupecheck: Checks a folder tree of files against the library\n");
+        sb.append("           by comparing each file of the source folder against\n");
+        sb.append("           the SHA1 tag that is stored in all library files.\n");
+        sb.append("usage: ");
+        sb.append(M3Util.class.getSimpleName().toLowerCase());
+        sb.append("\n dupecheck [options]\n");
+        // TODO: Use the Environment.getAudioFolder() instead
+        sb.append("	 -l|--library - the library folder\n");
+        sb.append("	 -d|--dupes - the folder to check for duplicates\n");
+        sb.append("	 -y|--dryrun - run the command without deleting the duplicate files\n");
         System.out.println(sb.toString());
     }
 
@@ -111,7 +134,7 @@ public class M3Util {
         sb.append("usage: ");
         sb.append(M3Util.class.getSimpleName().toLowerCase());
         sb.append("\n rename [options] [args]\n");
-        sb.append("	 ???\n");
+        sb.append("	 TODO\n");
         System.out.println(sb.toString());
     }
 
@@ -129,6 +152,7 @@ public class M3Util {
                         handleCreate(remaining);
                     }
                     break;
+
                     case "index": {
                         handleIndex(remaining);
                     }
@@ -141,6 +165,11 @@ public class M3Util {
 
                     case "refresh": {
                         handleRefresh(remaining);
+                    }
+                    break;
+
+                    case "dupecheck": {
+                        handleDupeCheck(remaining);
                     }
                     break;
 
@@ -178,6 +207,8 @@ public class M3Util {
     private static void handleIndex(String[] args) {
         OptionParser parser = new OptionParser();
         parser.acceptsAll(HELP_OPTIONS);
+        parser.acceptsAll(Arrays.asList("lucene", "l"));
+        parser.acceptsAll(Arrays.asList("database", "d"));
         try {
             List<String> quality = Arrays.asList("quality", "q");
             OptionSpec<TagQuality> tagQuality = parser.acceptsAll(quality).withRequiredArg().ofType(TagQuality.class);
@@ -185,25 +216,31 @@ public class M3Util {
             if (options.has("help") || options.has("h")) {
                 usageIndex();
             } else {
-                LuceneUpdater updateLucene = new LuceneUpdater();
-                try {
-                    if (!options.has(tagQuality)) {
-                        updateLucene.refresh();
-                    } else {
-                        updateLucene.refresh(tagQuality.value(options));
+                boolean lucene = options.has("lucene") || options.has("l");
+                boolean database = options.has("database") || options.has("d");
+                if (lucene || (!lucene && !database)) {
+                    LuceneUpdater updateLucene = new LuceneUpdater();
+                    try {
+                        if (!options.has(tagQuality)) {
+                            updateLucene.refresh();
+                        } else {
+                            updateLucene.refresh(tagQuality.value(options));
+                        }
+                    } finally {
+                        updateLucene.close();
                     }
-                } finally {
-                    updateLucene.close();
                 }
-                DatabaseUpdater updateDb = new DatabaseUpdater();
-                try {
-                    if (!options.has(tagQuality)) {
-                        updateDb.refresh();
-                    } else {
-                        updateDb.refresh(tagQuality.value(options));
+                if (database || (!lucene && !database)) {
+                    DatabaseUpdater updateDb = new DatabaseUpdater();
+                    try {
+                        if (!options.has(tagQuality)) {
+                            updateDb.refresh();
+                        } else {
+                            updateDb.refresh(tagQuality.value(options));
+                        }
+                    } finally {
+                        updateDb.close();
                     }
-                } finally {
-                    updateDb.close();
                 }
             }
         } catch (OptionException ex) {
@@ -224,6 +261,31 @@ public class M3Util {
             }
         } catch (OptionException ex) {
             usageId();
+        }
+    }
+
+    private static void handleDupeCheck(String[] args) {
+        OptionParser parser = new OptionParser();
+        parser.acceptsAll(HELP_OPTIONS);
+        try {
+            List<String> dryrunOptions = Arrays.asList("dryrun", "y");
+            parser.acceptsAll(dryrunOptions);
+            List<String> libraryOptions = Arrays.asList("library", "l");
+            OptionSpec<File> libraryRootFolder = parser.acceptsAll(libraryOptions).withRequiredArg().ofType(File.class);
+            List<String> dupesOptions = Arrays.asList("dupes", "d");
+            OptionSpec<File> dupesRootFolder = parser.acceptsAll(dupesOptions).withRequiredArg().ofType(File.class);
+            OptionSet options = parser.parse(args);
+            if (options.has("help") || options.has("h") || !options.hasOptions()) {
+                usageDupeCheck();
+            } else {
+                boolean dryrun = (options.has("dryrun") || options.has("y"));
+                File src = libraryRootFolder.value(options);
+                File dst = dupesRootFolder.value(options);
+                Sha1DupeChecker dc = new Sha1DupeChecker(src, dst, dryrun);
+                dc.start();
+            }
+        } catch (OptionException ex) {
+            usageDupeCheck();
         }
     }
 

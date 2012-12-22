@@ -1,13 +1,16 @@
 package org.jcoderz.m3util.intern;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 import org.jcoderz.commons.util.DirTreeListener;
 import org.jcoderz.commons.util.DirTreeWalker;
 import org.jcoderz.commons.util.FileUtils;
 import org.jcoderz.commons.util.StringUtil;
+import org.jcoderz.m3util.intern.util.LoggingUtil;
 import org.jcoderz.m3util.intern.util.Mp3Util;
 
 /**
@@ -16,7 +19,10 @@ import org.jcoderz.m3util.intern.util.Mp3Util;
  * @author Andreas Mandel
  *
  */
-public class DumpSha1Checker {
+public class Sha1DupeChecker {
+
+    public static final String CLASSNAME = IdAdder.class.getName();
+    public static final Logger logger = Logger.getLogger(CLASSNAME);
 
     private final HashMap<String, String> mRefSha1s = new HashMap<String, String>();
     private final boolean mSingleDirMode;
@@ -34,9 +40,10 @@ public class DumpSha1Checker {
      *
      * @param args the up to 3 string arguments.
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException{
+        LoggingUtil.initLogging(logger);
         // TODO: Must be smarter.
-        DumpSha1Checker c = new DumpSha1Checker(new File(args[0]), new File(args[1]), args.length > 2);
+        Sha1DupeChecker c = new Sha1DupeChecker(new File(args[0]), new File(args[1]), args.length > 2);
         c.start();
     }
 
@@ -47,7 +54,7 @@ public class DumpSha1Checker {
      * @param delDir dir to delete dupes in.
      * @param dryRun if true, only report what would be done.
      */
-    public DumpSha1Checker(File refDir, File delDir, boolean dryRun) {
+    public Sha1DupeChecker(File refDir, File delDir, boolean dryRun) {
         mSingleDirMode = refDir.equals(delDir);
         mReferenceDirectory = refDir;
         mDeleteDirectory = delDir;
@@ -57,7 +64,7 @@ public class DumpSha1Checker {
     /**
      * Start the action.
      */
-    private void start() {
+    public void start() {
         // pass 1 collect all ref sha1s.
         if (!mSingleDirMode) {
             fillRefData();
